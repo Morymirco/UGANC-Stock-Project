@@ -1,7 +1,7 @@
 # ui/user_management.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-from auth_manager import AuthManager
+from core.auth_manager import AuthManager
 
 class UserManagementUI:
     def __init__(self, parent, auth_manager):

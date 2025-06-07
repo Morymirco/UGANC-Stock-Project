@@ -4,8 +4,8 @@
 import tkinter as tk
 import os
 import sys
-from db import Database
-from login_ui import LoginUI
+from database.db import Database
+from ui.login_ui import LoginUI
 
 def main():
     # Initialiser la base de données
