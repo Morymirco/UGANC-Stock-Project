@@ -3,7 +3,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from reporting import report_manager
 import sqlite3
-from ui.article_form import ArticleManager
+from ui.article_manager import ArticleManager
+from ui.stock_manager import StockManager
 
 class MainUI:
     def __init__(self, root, auth_manager):
@@ -82,6 +83,7 @@ class MainUI:
             stock_menu.add_command(label="Entrées de stock", command=self.stock_entry)
         stock_menu.add_command(label="Sorties de stock", command=self.stock_exit)
         stock_menu.add_command(label="État du stock", command=self.stock_status)
+        stock_menu.add_command(label="Gestion du stock", command=self.manage_stock)
         menubar.add_cascade(label="Stock", menu=stock_menu)
         
         # Nouveau menu Mouvements (à côté de Stock)
@@ -107,6 +109,7 @@ class MainUI:
         ttk.Button(buttons_frame, text="Gérer les utilisateurs", command=self.manage_users).pack(side=tk.LEFT, padx=5)
         ttk.Button(buttons_frame, text="Gérer les articles", command=self.manage_products).pack(side=tk.LEFT, padx=5)
         ttk.Button(buttons_frame, text="État du stock", command=self.stock_status).pack(side=tk.LEFT, padx=5)
+        ttk.Button(buttons_frame, text="Gestion du stock", command=self.manage_stock).pack(side=tk.LEFT, padx=5)
         
         # Statistiques
         stats_frame = ttk.LabelFrame(parent, text="Statistiques")
@@ -125,6 +128,7 @@ class MainUI:
         ttk.Button(buttons_frame, text="Gérer les articles", command=self.manage_products).pack(side=tk.LEFT, padx=5)
         ttk.Button(buttons_frame, text="Entrées de stock", command=self.stock_entry).pack(side=tk.LEFT, padx=5)
         ttk.Button(buttons_frame, text="État du stock", command=self.stock_status).pack(side=tk.LEFT, padx=5)
+        ttk.Button(buttons_frame, text="Gestion du stock", command=self.manage_stock).pack(side=tk.LEFT, padx=5)
         
         # Alertes de stock
         alerts_frame = ttk.LabelFrame(parent, text="Alertes de stock")
@@ -235,5 +239,8 @@ class MainUI:
         for row in historique:
             tree.insert("", tk.END, values=(row[0], row[2], row[3]))  # On saute row[1] (type)
         tree.pack(fill=tk.BOTH, expand=True)
+    
+    def manage_stock(self):
+        StockManager(self.root)
 
 
