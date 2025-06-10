@@ -147,12 +147,16 @@ class ArticleManager(tk.Toplevel):
         self.refresh_table()
 
     def create_widgets(self):
+        # Bouton Retour en haut
+        ttk.Button(self, text="Retour", command=self.destroy).pack(anchor="w", padx=10, pady=5)
+
         btn_frame = ttk.Frame(self)
         btn_frame.pack(fill=tk.X, pady=10)
         ttk.Button(btn_frame, text="Ajouter", command=self.add_article).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Modifier", command=self.edit_article).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Supprimer", command=self.delete_article).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Scanner code-barres", command=self.scan_and_select_article).pack(side=tk.LEFT, padx=5)
+        
 
         # Tableau des articles
         columns = ("code_article", "designation", "categorie", "prix_achat", "prix_vente", "seuil_alerte", "code_barre")
@@ -219,6 +223,8 @@ class ArticleManager(tk.Toplevel):
                 break
         cap.release()
         cv2.destroyAllWindows()
+
+   
 
 # Pour ouvrir la gestion des articles depuis le menu principal :
 # from ui.article_form import ArticleManager

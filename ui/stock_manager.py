@@ -14,6 +14,9 @@ class StockManager(tk.Toplevel):
         self.show_alerts()
 
     def create_widgets(self):
+        # Bouton Retour en haut
+        ttk.Button(self, text="Retour", command=self.destroy).pack(anchor="w", padx=10, pady=5)
+
         # Zone d'alerte EN HAUT
         self.alert_label = ttk.Label(self, text="", foreground="red", font=("Arial", 12, "bold"))
         self.alert_label.pack(pady=5)
@@ -45,6 +48,7 @@ class StockManager(tk.Toplevel):
         articles = self.conn.execute(query).fetchall()
         for article in articles:
             self.tree.insert("", tk.END, values=article)
+        self.show_alerts()
 
     def add_entry(self):
         self.stock_movement("entrée")
@@ -106,6 +110,7 @@ class StockManager(tk.Toplevel):
         # Affiche un rapport simple des mouvements
         win = tk.Toplevel(self)
         win.title("Rapport des mouvements")
+        ttk.Button(win, text="Retour", command=win.destroy).pack(anchor="w", padx=10, pady=5)
         tree = ttk.Treeview(win, columns=("Date", "Type", "Code article", "Quantité"), show="headings")
         for col in ("Date", "Type", "Code article", "Quantité"):
             tree.heading(col, text=col)
@@ -127,6 +132,7 @@ class StockManager(tk.Toplevel):
         total = sum(row[4] for row in articles)
         win = tk.Toplevel(self)
         win.title("Valeur totale du stock")
+        ttk.Button(win, text="Retour", command=win.destroy).pack(anchor="w", padx=10, pady=5)
         tree = ttk.Treeview(win, columns=("Code article", "Désignation", "Quantité", "Prix vente", "Valeur"), show="headings")
         for col in ("Code article", "Désignation", "Quantité", "Prix vente", "Valeur"):
             tree.heading(col, text=col)
@@ -150,6 +156,7 @@ class StockManager(tk.Toplevel):
         articles = self.conn.execute(query).fetchall()
         win = tk.Toplevel(self)
         win.title("Articles les plus vendus")
+        ttk.Button(win, text="Retour", command=win.destroy).pack(anchor="w", padx=10, pady=5)
         tree = ttk.Treeview(win, columns=("Code article", "Désignation", "Quantité vendue"), show="headings")
         for col in ("Code article", "Désignation", "Quantité vendue"):
             tree.heading(col, text=col)

@@ -1,34 +1,102 @@
 # Système de Gestion de Stock
-Projet de cours pour la 3ème année, Université Gamal Abdel Nasser de Conakry.
-Membres : Mory Koulibaly, Cecis Alexis Haba, Karfalla Diaby, Jean Keloua Ouamouno(Jeanos), Ramadan Barry.
 
-## Structure
-- `/backend` : Base de données SQLite et logique métier.
-- `/frontend` : Interfaces Tkinter.
-- `/security` : Authentification bcrypt.
-- `/reporting` : Rapports, alertes, codes-barres ZXing.
-- `/docs` : Documentation et présentation.
+Projet de gestion de stock réalisé à l’Université Gamal Abdel Nasser de Conakry.
 
-## Technologies
-- Python/Tkinter, SQLite, bcrypt, ZXing.
+**Auteurs** : Mory Koulibaly, Cecis Alexis Haba, Karfalla Diaby, Jean Keloua Ouamouno (Jeanos), Mamadou Ramadane Barry.
+
+---
+
+## Structure du projet
+
+- `/backend` : Base de données SQLite et logique métier
+- `/frontend` : Interfaces graphiques Tkinter
+- `/security` : Authentification sécurisée (bcrypt)
+- `/reporting` : Rapports, alertes, codes-barres
+- `/docs` : Documentation et présentation
+
+## Technologies utilisées
+
+- Python 3
+- Tkinter (interface graphique)
+- SQLite (base de données)
+- bcrypt (authentification)
+- python-barcode, opencv-python, pyzbar (gestion des codes-barres)
+
+---
 
 ## Installation
-- Cloner le dépôt
-- Installer les dépendances : `pip install -r requirements.txt`
-- Initialiser la base de données : `python database/db.py`
-- Exécuter le script principal : `python main.py`
+
+1. **Cloner le dépôt**
+
+   ```bash
+   git clone https://github.com//Morymirco/UGANC-Stock-Project.git
+   cd UGANC-Stock-Project
+   ```
+
+2. **Installer les dépendances**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Initialiser la base de données**
+
+   ```bash
+   python database/db.py
+   ```
+
+4. **Lancer l’application**
+   ```bash
+   python main.py
+   ```
+
+---
 
 ## Utilisation
-- Lancer le script principal : `python main.py`
-- Se connecter en tant qu'administrateur : `admin/admin123`
-- Utiliser les fonctionnalités de gestion des utilisateurs, articles, stocks et mouvements.
 
-## Fonctionnalités
-- Gestion des utilisateurs : Création, modification, suppression et affichage des utilisateurs.
-- Gestion des articles : Ajout, modification, suppression et affichage des articles.
-- Gestion des stocks : Ajout, sortie et affichage des stocks.
-- Gestion des mouvements : Ajout, sortie et affichage des mouvements.
-- Gestion des fournisseurs : Ajout, modification, suppression et affichage des fournisseurs.
-- Gestion des rapports : Génération des rapports, alertes et codes-barres.
-- Gestion des utilisateurs : Création, modification, suppression et affichage des utilisateurs.
+- Se connecter avec l’utilisateur par défaut :  
+  **Identifiant** : `admin`  
+  **Mot de passe** : `admin123`
+- Naviguer dans l’application pour gérer :
+  - Utilisateurs
+  - Articles
+  - Stocks
+  - Mouvements
+  - Fournisseurs
+  - Rapports et alertes
+  - Codes-barres (génération et scan)
 
+---
+
+## Fonctionnalités principales
+
+- **Gestion des utilisateurs** : Création, modification, suppression, rôles et authentification sécurisée.
+- **Gestion des articles** : Ajout, modification, suppression, génération et affichage de codes-barres.
+- **Gestion des stocks** : Entrées/sorties, affichage des quantités, alertes de stock faible.
+- **Gestion des mouvements** : Historique détaillé des entrées et sorties.
+- **Gestion des fournisseurs** : Ajout, modification, suppression, affichage.
+- **Rapports** :
+  - Valeur totale du stock (quantité × prix de vente)
+  - Articles les plus vendus (basé sur les sorties)
+  - Alertes automatiques sur les articles sous le seuil
+- **Codes-barres** :
+  - Génération automatique (Code128)
+  - Scan via webcam pour retrouver un article
+  - Affichage de l’image du code-barres dans l’interface
+
+---
+
+## Contribution
+
+- Forkez le projet, créez une branche, proposez vos améliorations via pull request.
+- Merci de documenter vos ajouts dans `/docs`.
+
+---
+
+## Licence
+
+Projet académique – usage pédagogique uniquement.
+
+---
+
+**Pour toute question ou suggestion, contactez l’un des auteurs.**
