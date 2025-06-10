@@ -1,6 +1,8 @@
 bcrypt==4.0.1
-python-barcode
-opencv-python
-pyzbar
-Pillow
-
+python-barcode==0.15.1
+opencv-python==4.8.0.76
+pyzbar==0.1.9
+Pillow==10.0.0
+customtkinter==5.2.2
+darkdetect==0.8.0
+numpy>=1.21.0  # Requis par opencv-python

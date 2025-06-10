@@ -8,6 +8,10 @@ class AuthManager:
     def __init__(self):
         self.db = Database()
         self.current_user = None
+        
+    def get_connection(self):
+        """Retourne une connexion à la base de données"""
+        return self.db.get_connection()
     
     def hash_password(self, password):
         """Hache un mot de passe en utilisant bcrypt"""
