@@ -1,6 +1,8 @@
 # ui/main_ui.py
 import tkinter as tk
 from tkinter import ttk, messagebox
+from reporting import report_manager
+import sqlite3
 
 class MainUI:
     def __init__(self, root, auth_manager):
@@ -75,15 +77,17 @@ class MainUI:
         
         # Menu Stock
         stock_menu = tk.Menu(menubar, tearoff=0)
-        
-        # Options pour admin et gestionnaire
         if self.current_user["role"].lower() in ["admin", "gestionnaire"]:
             stock_menu.add_command(label="Entrées de stock", command=self.stock_entry)
-        
-        # Options pour tous
         stock_menu.add_command(label="Sorties de stock", command=self.stock_exit)
         stock_menu.add_command(label="État du stock", command=self.stock_status)
         menubar.add_cascade(label="Stock", menu=stock_menu)
+        
+        # Nouveau menu Mouvements (à côté de Stock)
+        mouvements_menu = tk.Menu(menubar, tearoff=0)
+        mouvements_menu.add_command(label="Historique des entrées", command=self.show_entry_mouvements)
+        mouvements_menu.add_command(label="Historique des sorties", command=self.show_exit_mouvements)
+        menubar.add_cascade(label="Mouvements", menu=mouvements_menu)
         
         # Menu Système (admin uniquement)
         if self.current_user["role"].lower() == "admin":
@@ -166,10 +170,69 @@ class MainUI:
         messagebox.showinfo("Info", "Fonctionnalité de sortie de stock à implémenter")
     
     def stock_status(self):
-        messagebox.showinfo("Info", "Fonctionnalité d'état du stock à implémenter")
+        # Connexion à la base
+        conn = sqlite3.connect("stock_app.db")
+        etat = report_manager.get_etat_stocks(conn)
+        conn.close()
+        # Affichage simple dans une nouvelle fenêtre
+        win = tk.Toplevel(self.root)
+        win.title("État du stock")
+        tree = ttk.Treeview(win, columns=("Code", "Désignation", "Quantité"), show="headings")
+        tree.heading("Code", text="Code article")
+        tree.heading("Désignation", text="Désignation")
+        tree.heading("Quantité", text="Quantité")
+        for row in etat:
+            tree.insert("", tk.END, values=tuple(row))  # Correction ici
+        tree.pack(fill=tk.BOTH, expand=True)
+        print("Résultats :", etat)  # ou historique
     
     def system_settings(self):
         messagebox.showinfo("Info", "Fonctionnalité de paramètres système à implémenter")
     
     def view_products(self):
         messagebox.showinfo("Info", "Fonctionnalité de consultation des articles à implémenter")
+    
+    def show_movement_history(self):
+        conn = sqlite3.connect("stock_app.db")
+        historique = report_manager.get_historique_mouvements(conn)
+        conn.close()
+        win = tk.Toplevel(self.root)
+        win.title("Historique des mouvements")
+        tree = ttk.Treeview(win, columns=("Date", "Code article", "Quantité"), show="headings")
+        tree.heading("Date", text="Date")
+        tree.heading("Code article", text="Code article")
+        tree.heading("Quantité", text="Quantité")
+        for row in historique:
+            # row = (date_mvt, type, code_article, quantite)
+            tree.insert("", tk.END, values=(row[0], row[2], row[3]))  # On saute row[1] (type)
+        tree.pack(fill=tk.BOTH, expand=True)
+    
+    def show_entry_mouvements(self):
+        conn = sqlite3.connect("stock_app.db")
+        historique = [row for row in report_manager.get_historique_mouvements(conn) if row[1].lower() == "entrée"]
+        conn.close()
+        win = tk.Toplevel(self.root)
+        win.title("Historique des entrées")
+        tree = ttk.Treeview(win, columns=("Date", "Code article", "Quantité"), show="headings")
+        tree.heading("Date", text="Date")
+        tree.heading("Code article", text="Code article")
+        tree.heading("Quantité", text="Quantité")
+        for row in historique:
+            tree.insert("", tk.END, values=(row[0], row[2], row[3]))  # Correction ici
+        tree.pack(fill=tk.BOTH, expand=True)
+
+    def show_exit_mouvements(self):
+        conn = sqlite3.connect("stock_app.db")
+        historique = [row for row in report_manager.get_historique_mouvements(conn) if row[1].lower() == "sortie"]
+        conn.close()
+        win = tk.Toplevel(self.root)
+        win.title("Historique des sorties")
+        tree = ttk.Treeview(win, columns=("Date", "Code article", "Quantité"), show="headings")
+        tree.heading("Date", text="Date")
+        tree.heading("Code article", text="Code article")
+        tree.heading("Quantité", text="Quantité")
+        for row in historique:
+            tree.insert("", tk.END, values=(row[0], row[2], row[3]))  # On saute row[1] (type)
+        tree.pack(fill=tk.BOTH, expand=True)
+
+        
