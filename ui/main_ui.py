@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from reporting import report_manager
 import sqlite3
+from ui.article_form import ArticleManager
 
 class MainUI:
     def __init__(self, root, auth_manager):
@@ -161,7 +162,7 @@ class MainUI:
         UserManagementUI(self.root, self.auth_manager)
     
     def manage_products(self):
-        messagebox.showinfo("Info", "Fonctionnalité de gestion des articles à implémenter")
+        ArticleManager(self.root)
     
     def stock_entry(self):
         messagebox.showinfo("Info", "Fonctionnalité d'entrée de stock à implémenter")
@@ -235,4 +236,4 @@ class MainUI:
             tree.insert("", tk.END, values=(row[0], row[2], row[3]))  # On saute row[1] (type)
         tree.pack(fill=tk.BOTH, expand=True)
 
-        
+

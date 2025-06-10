@@ -1,2 +1,6 @@
 bcrypt==4.0.1
+python-barcode
+opencv-python
+pyzbar
+Pillow
 

@@ -1,6 +1,9 @@
 import sqlite3
 conn = sqlite3.connect("stock_app.db")
 cursor = conn.cursor()
-res = cursor.execute("SELECT a.code_article, a.designation, s.quantite FROM Articles a LEFT JOIN Stock s ON a.code_article = s.code_article;").fetchall()
-print(res)
+cursor.execute("PRAGMA table_info(Articles)")
+print(cursor.fetchall())
+cursor.execute("ALTER TABLE Articles ADD COLUMN code_barre TEXT")
+conn.commit()
 conn.close()
+print("Colonne code_barre ajoutée à Articles.")
