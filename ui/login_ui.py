@@ -8,9 +8,16 @@ from tkinter import messagebox, ttk
 from PIL import Image, ImageDraw, ImageTk
 import customtkinter as ctk
 
+import sys
+import os
+
+# Ajout du répertoire racine au PYTHONPATH
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 try:
     from core.auth_manager import AuthManager
-    from ui.main_ui import MainUI
     from ui.components import ThemeToggle, LoginBanner, AutoCompleteEntry
     from utils.theme_utils import setup_theme
 except ImportError as e:
@@ -338,30 +345,27 @@ class LoginUI:
             user: Dictionnaire contenant les informations de l'utilisateur connecté
         """
         try:
-            self.root.withdraw()  # Cacher la fenêtre de connexion
+            # Cacher la fenêtre de connexion
+            self.root.withdraw()
             
-            # Créer une nouvelle fenêtre pour l'application principale
-            main_window = ctk.CTkToplevel(self.root)
-            main_window.title("Système de Gestion de Stock")
-            main_window.geometry("1280x720")  # Taille par défaut plus grande
+            # Préparer les données utilisateur pour la fenêtre principale
+            user_info = {
+                "username": user.get("username", ""),
+                "full_name": f"{user.get('prenom', '')} {user.get('nom', '')}".strip(),
+                "role": user.get("role", "user").lower()
+            }
             
-            # Positionner la fenêtre au centre
-            window_width = 1280
-            window_height = 720
-            screen_width = main_window.winfo_screenwidth()
-            screen_height = main_window.winfo_screenheight()
-            x = (screen_width // 2) - (window_width // 2)
-            y = (screen_height // 2) - (window_height // 2)
-            main_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+            # Importer MainWindow depuis le bon module
+            from ui.main_window import MainWindow
             
-            # Définir le comportement de fermeture
-            main_window.protocol("WM_DELETE_WINDOW", self.on_main_close)
+            # Créer et afficher la fenêtre principale
+            self.main_app = MainWindow(user_info)
             
-            # Initialiser l'interface principale avec l'auth_manager
-            self.main_app = MainUI(main_window, self.auth_manager)
+            # Configurer le comportement de fermeture
+            self.main_app.protocol("WM_DELETE_WINDOW", self.on_main_close)
             
-            # Configurer la fenêtre principale
-            main_window.focus_force()
+            # Démarrer l'application
+            self.main_app.start()
             
         except Exception as e:
             messagebox.showerror(
