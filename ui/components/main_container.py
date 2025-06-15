@@ -2,7 +2,7 @@
 Conteneur principal qui gère la structure de l'application avec une barre latérale et un contenu dynamique.
 """
 import customtkinter as ctk
-from typing import Dict, Type, Any, Optional
+from typing import Dict, Optional
 from .sidebar import Sidebar
 
 class MainContainer(ctk.CTkFrame):
@@ -43,70 +43,77 @@ class MainContainer(ctk.CTkFrame):
         self._create_content_frames()
         
         # Afficher le tableau de bord par défaut
-        self.show_content("accueil")
+        self.show_content("dashboard")
     
     def _create_content_frames(self):
         """Crée les différents écrans de contenu"""
-        # Frame d'accueil
-        self._create_content_frame("accueil", "Tableau de bord")
-        
-        # Frame de gestion des stocks
-        self._create_content_frame("stock", "Gestion des stocks")
-        
-        # Frame des ventes
-        self._create_content_frame("ventes", "Gestion des ventes")
-        
-        # Frame des rapports
-        self._create_content_frame("rapports", "Rapports et statistiques")
-        
-        # Frame des paramètres
-        self._create_content_frame("parametres", "Paramètres de l'application")
-    
-    def _create_content_frame(self, frame_id: str, title: str):
-        """
-        Crée un nouveau frame de contenu.
-        
-        Args:
-            frame_id: Identifiant unique du frame
-            title: Titre à afficher dans le frame
-        """
-        # Créer le frame avec une bordure et un fond
-        frame = ctk.CTkFrame(
-            self.content_container,
-            corner_radius=10,
-            fg_color=("#ffffff", "#1e1e1e"),
-            border_width=1,
-            border_color=("#e0e0e0", "#333333")
-        )
-        frame.grid(row=0, column=0, sticky="nsew")
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(1, weight=1)
-        
-        # Ajouter un en-tête
-        header = ctk.CTkLabel(
-            frame,
-            text=title,
-            font=("Segoe UI", 18, "bold"),
-            padx=20,
-            pady=15,
-            anchor="w"
-        )
-        header.grid(row=0, column=0, sticky="ew")
-        
-        # Ajouter un séparateur
-        separator = ctk.CTkFrame(frame, height=1, fg_color=("#e0e0e0", "#333333"))
-        separator.grid(row=1, column=0, sticky="ew", pady=(0, 10))
-        
-        # Zone de contenu principale
-        content = ctk.CTkFrame(frame, fg_color="transparent")
-        content.grid(row=2, column=0, sticky="nsew", padx=20, pady=10)
-        content.grid_columnconfigure(0, weight=1)
-        
-        # Stocker le frame de contenu pour une utilisation ultérieure
-        self.content_frames[frame_id] = content
-        
-        # Masquer le frame par défaut
-        frame.grid_remove()
+        print("Création des frames de contenu...")
+        try:
+            print("Tentative d'importation des écrans...")
+            from ui.screens.dashboard_screen import DashboardScreen
+            from ui.screens.article_manager import ArticleManager
+            from ui.screens.stock_manager import StockManager
+            
+            print("Importation des écrans réussie")
+            
+            try:
+                # Frame du tableau de bord
+                print("Création du dashboard...")
+                self.dashboard_frame = DashboardScreen(self.content_container)
+                self.content_frames["dashboard"] = self.dashboard_frame
+                print("Dashboard créé avec succès")
+                
+                # Frame de gestion des articles
+                print("Création du gestionnaire d'articles...")
+                self.articles_frame = ArticleManager(self.content_container)
+                self.content_frames["articles"] = self.articles_frame
+                print("Gestionnaire d'articles créé avec succès")
+                
+                # Frame de gestion des stocks
+                print("Création du gestionnaire de stocks...")
+                self.stock_frame = StockManager(self.content_container)
+                self.content_frames["stock"] = self.stock_frame
+                print("Gestionnaire de stocks créé avec succès")
+                
+                # Frame des paramètres (à implémenter)
+                print("Création du cadre des paramètres...")
+                self.settings_frame = ctk.CTkFrame(
+                    self.content_container, 
+                    fg_color="transparent"
+                )
+                self.content_frames["parametres"] = self.settings_frame
+                print("Cadre des paramètres créé avec succès")
+                
+                # Afficher les clés des frames créés
+                print(f"Frames créés: {list(self.content_frames.keys())}")
+                
+                # Masquer tous les frames sauf celui par défaut
+                for key, frame in self.content_frames.items():
+                    print(f"Masquage du frame: {key}")
+                    frame.grid_forget()
+                
+                print("Tous les frames ont été masqués")
+                
+            except Exception as e:
+                print(f"Erreur lors de la création des frames: {e}")
+                raise
+                
+        except ImportError as e:
+            import sys
+            import os
+            print(f"Erreur d'importation: {e}")
+            print(f"Chemin Python: {sys.path}")
+            print(f"Répertoire de travail: {os.getcwd()}")
+            
+            # Créer un cadre d'erreur si le chargement échoue
+            error_frame = ctk.CTkFrame(self.content_container, fg_color="transparent")
+            ctk.CTkLabel(
+                error_frame,
+                text=f"Erreur de chargement des écrans: {e}\nVeuillez vérifier les logs pour plus de détails.",
+                text_color=("#dc3545", "#ff6b6b"),
+                font=("Segoe UI", 12)
+            ).pack(expand=True, padx=20, pady=20)
+            self.content_frames["error"] = error_frame
     
     def _on_sidebar_button_click(self, button_name: str):
         """
@@ -115,51 +122,101 @@ class MainContainer(ctk.CTkFrame):
         Args:
             button_name: Nom du bouton cliqué
         """
+        print(f"\n=== Clic sur le bouton: {button_name} ===")
+        
         # Mapper les noms des boutons aux identifiants de frame
-        button_mapping = {
-            "accueil": "accueil",
-            "tableau de bord": "accueil",
+        button_map = {
+            "tableau de bord": "dashboard",
+            "gestion des articles": "articles",
             "gestion des stocks": "stock",
-            "stocks": "stock",
-            "ventes": "ventes",
-            "rapports": "rapports",
             "paramètres": "parametres",
-            "parametres": "parametres",
-            "déconnexion": "deconnexion"
+            "déconnexion": "logout"
         }
         
-        # Convertir en minuscules pour la correspondance
-        button_name = button_name.lower()
+        key = button_name.lower()
+        print(f"Clé du bouton: '{key}'")
         
-        # Vérifier si c'est la déconnexion
-        if button_name == "déconnexion":
-            self.master.destroy()  # Fermer l'application
+        # Obtenir la clé du frame correspondant
+        frame_key = button_map.get(key)
+        
+        if frame_key is None:
+            print(f"ATTENTION: Aucune clé de frame trouvée pour le bouton: {button_name}")
+            frame_key = "dashboard"  # Valeur par défaut
+            
+        print(f"Frame clé sélectionnée: {frame_key}")
+        
+        # Gérer la déconnexion
+        if frame_key == "logout":
+            print("Déconnexion demandée, fermeture de l'application...")
+            self.master.destroy()  # Fermer la fenêtre principale
             return
-        
+            
         # Afficher le contenu correspondant
-        frame_id = button_mapping.get(button_name, "accueil")
-        self.show_content(frame_id)
+        print(f"Appel de show_content avec la clé: {frame_key}")
+        self.show_content(frame_key)
     
-    def show_content(self, frame_id: str):
+    def show_content(self, content_key: str):
         """
-        Affiche le contenu correspondant à l'identifiant donné.
+        Affiche le contenu correspondant à la clé spécifiée.
         
         Args:
-            frame_id: Identifiant du frame à afficher
+            content_key: Clé du contenu à afficher
         """
-        # Masquer le frame actuel s'il y en a un
-        if self.current_frame:
-            self.current_frame.grid_remove()
+        print(f"\n=== Tentative d'affichage du contenu: {content_key} ===")
+        print(f"Clés disponibles: {list(self.content_frames.keys())}")
         
-        # Afficher le nouveau frame
-        if frame_id in self.content_frames:
-            self.current_frame = self.content_frames[frame_id].master
-            self.current_frame.grid()
+        # Masquer le contenu actuel
+        if self.current_frame:
+            print(f"Masquage du frame actuel: {self.current_frame}")
+            self.current_frame.grid_forget()
+        
+        # Vérifier si la clé existe
+        if content_key not in self.content_frames:
+            print(f"ERREUR: La clé '{content_key}' n'existe pas dans content_frames")
+            # Afficher un message d'erreur
+            error_frame = ctk.CTkFrame(self.content_container, fg_color="transparent")
+            ctk.CTkLabel(
+                error_frame,
+                text=f"Contenu non trouvé: {content_key}\nClés disponibles: {', '.join(self.content_frames.keys())}",
+                text_color=("#dc3545", "#ff6b6b"),
+                font=("Segoe UI", 12)
+            ).pack(expand=True, padx=20, pady=20)
+            self.current_frame = error_frame
+            self.current_frame.grid(row=0, column=0, sticky="nsew")
+            return
+        
+        try:
+            # Récupérer et afficher le nouveau frame
+            self.current_frame = self.content_frames[content_key]
+            print(f"Affichage du frame: {content_key} (type: {type(self.current_frame)})")
+            
+            # Configurer la grille pour le nouveau frame
+            self.current_frame.grid(row=0, column=0, sticky="nsew")
+            self.current_frame.tkraise()  # S'assurer que le frame est au premier plan
             
             # Mettre à jour la barre latérale
-            self.sidebar.set_active_button(frame_id)
+            if hasattr(self, 'sidebar') and hasattr(self.sidebar, 'set_active_button'):
+                print(f"Mise à jour du bouton actif dans la barre latérale: {content_key}")
+                self.sidebar.set_active_button(content_key)
+            else:
+                print("ATTENTION: Impossible de mettre à jour la barre latérale - sidebar ou set_active_button non disponible")
+                
+            print(f"=== Affichage de {content_key} réussi ===\n")
+            
+        except Exception as e:
+            print(f"ERREUR lors de l'affichage de {content_key}: {e}")
+            # Afficher un message d'erreur
+            error_frame = ctk.CTkFrame(self.content_container, fg_color="transparent")
+            ctk.CTkLabel(
+                error_frame,
+                text=f"Erreur lors de l'affichage de {content_key}: {str(e)}",
+                text_color=("#dc3545", "#ff6b6b"),
+                font=("Segoe UI", 12)
+            ).pack(expand=True, padx=20, pady=20)
+            self.current_frame = error_frame
+            self.current_frame.grid(row=0, column=0, sticky="nsew")
     
-    def get_content_frame(self, frame_id: str) -> ctk.CTkFrame:
+    def get_content_frame(self, frame_id: str) -> Optional[ctk.CTkFrame]:
         """
         Récupère le frame de contenu correspondant à l'identifiant donné.
         
@@ -167,9 +224,9 @@ class MainContainer(ctk.CTkFrame):
             frame_id: Identifiant du frame à récupérer
             
         Returns:
-            Le frame de contenu correspondant
+            Le frame de contenu correspondant ou None si non trouvé
         """
-        return self.content_frames.get(frame_id, None)
+        return self.content_frames.get(frame_id)
 
 
 if __name__ == "__main__":

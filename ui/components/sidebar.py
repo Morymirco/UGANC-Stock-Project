@@ -87,11 +87,9 @@ Utilise CustomTkinter pour un rendu moderne et une meilleure expérience utilisa
         
         # Liste des boutons de navigation
         menu_items = [
-            ("Accueil", "🏠", "accueil"),
             ("Tableau de bord", "📊", "dashboard"),
+            ("Gestion des articles", "📝", "articles"),
             ("Gestion des stocks", "📦", "stock"),
-            ("Ventes", "💰", "ventes"),
-            ("Rapports", "📋", "rapports"),
             ("Paramètres", "⚙️", "parametres")
         ]
         
