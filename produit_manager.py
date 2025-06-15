@@ -5,23 +5,23 @@ class ProduitManager:
     def __init__(self):
         self.db = Database()
 
-    def ajouter_article(self, code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte):
+    def ajouter_article(self, code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte, fournisseur_id):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO Articles (code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte))
+                INSERT INTO Articles (code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte, fournisseur_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte, fournisseur_id))
             conn.commit()
 
-    def modifier_article(self, code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte):
+    def modifier_article(self, code_article, designation, categorie, prix_achat, prix_vente, seuil_alerte, fournisseur_id):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE Articles
-                SET designation = ?, categorie = ?, prix_achat = ?, prix_vente = ?, seuil_alerte = ?
+                SET designation = ?, categorie = ?, prix_achat = ?, prix_vente = ?, seuil_alerte = ?, fournisseur_id = ?
                 WHERE code_article = ?
-            """, (designation, categorie, prix_achat, prix_vente, seuil_alerte, code_article))
+            """, (designation, categorie, prix_achat, prix_vente, seuil_alerte, fournisseur_id, code_article))
             conn.commit()
 
     def supprimer_article(self, code_article):
@@ -33,5 +33,9 @@ class ProduitManager:
     def lister_articles(self):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Articles")
+            cursor.execute("""
+                SELECT a.*, f.nom AS fournisseur_nom 
+                FROM Articles a 
+                JOIN Fournisseurs f ON a.fournisseur_id = f.id
+            """)
             return [dict(row) for row in cursor.fetchall()]
