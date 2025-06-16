@@ -34,6 +34,6 @@ for i in range(5):
         user_id
     ))
 
-conn.commit()
+    conn.commit()
 conn.close()
 print("10 mouvements insérés (5 entrées, 5 sorties)")
