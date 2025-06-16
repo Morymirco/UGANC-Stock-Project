@@ -269,7 +269,7 @@ class MainUI:
         self.create_stat_card(stats_grid, "⚠️ Alertes Stock", str(stats['rupture_stock']), 
                              "Produits en alerte", 0, 2, color_rupture)
         
-        self.create_stat_card(stats_grid, "💰 Valeur Stock", f"{stats['valeur_stock']:.2f} €", 
+        self.create_stat_card(stats_grid, "💰 Valeur Stock", f"{stats['valeur_stock']:.2f} GNF", 
                              "Valeur totale", 1, 0, theme_manager.get_color("accent_success"))
         
         self.create_stat_card(stats_grid, "📈 Mouvements", str(stats['mouvements_today']), 
@@ -1013,5 +1013,94 @@ class MainUI:
     
     def manage_stock(self):
         StockManager(self.root)
+
+    def create_menu(self):
+        """Crée le menu principal de l'application"""
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+        
+        # Menu Articles
+        articles_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="📦 Articles", menu=articles_menu)
+        articles_menu.add_command(label="🔍 Consulter les articles", command=self.manage_products)
+        articles_menu.add_command(label="➕ Nouvel article", command=lambda: self.manage_products())
+        
+        # Menu Stock
+        stock_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="📊 Stock", menu=stock_menu)
+        stock_menu.add_command(label="📈 Entrée de stock", command=self.stock_entry)
+        stock_menu.add_command(label="📉 Sortie de stock", command=self.stock_exit)
+        stock_menu.add_command(label="📋 État du stock", command=self.stock_status)
+        stock_menu.add_command(label="🔄 Gestion du stock", command=self.manage_stock)
+        stock_menu.add_separator()
+        stock_menu.add_command(label="📝 Historique des mouvements", command=self.show_movements_history)
+        
+        # Menu Fournisseurs (NOUVEAU)
+        suppliers_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="🏢 Fournisseurs", menu=suppliers_menu)
+        suppliers_menu.add_command(label="📋 Gestion des fournisseurs", command=self.manage_suppliers)
+        suppliers_menu.add_command(label="➕ Nouveau fournisseur", command=self.new_supplier)
+        suppliers_menu.add_command(label="📊 Statistiques fournisseurs", command=self.supplier_stats)
+        
+        # Menu Rapports
+        reports_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="📈 Rapports", menu=reports_menu)
+        reports_menu.add_command(label="📊 Tableau de bord", command=self.show_dashboard)
+        reports_menu.add_command(label="📋 Rapports détaillés", command=self.show_reports)
+        
+        # Menu Système (selon les droits)
+        if self.current_user['role'] == 'admin':
+            system_menu = tk.Menu(menubar, tearoff=0)
+            menubar.add_cascade(label="⚙️ Système", menu=system_menu)
+            system_menu.add_command(label="👥 Gestion des utilisateurs", command=self.manage_users)
+            system_menu.add_command(label="🔧 Paramètres système", command=self.system_settings)
+            system_menu.add_separator()
+            system_menu.add_command(label="🚪 Déconnexion", command=self.logout)
+        
+        # Menu Aide
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="❓ Aide", menu=help_menu)
+        help_menu.add_command(label="📖 Guide d'utilisation", command=self.show_help)
+        help_menu.add_command(label="ℹ️ À propos", command=self.show_about)
+
+    # Nouvelles méthodes pour la gestion des fournisseurs
+    def manage_suppliers(self):
+        """Ouvre la gestion des fournisseurs"""
+        from ui.supplier_manager import SupplierManager
+        SupplierManager(self.root)
+    
+    def new_supplier(self):
+        """Ouvre le formulaire de nouveau fournisseur"""
+        from ui.supplier_manager import SupplierForm
+        SupplierForm(self.root)
+    
+    def supplier_stats(self):
+        """Affiche les statistiques des fournisseurs"""
+        try:
+            # Compter les fournisseurs
+            total_suppliers = self.conn.execute("SELECT COUNT(*) FROM Fournisseurs").fetchone()[0]
+            
+            if total_suppliers == 0:
+                messagebox.showinfo("📊 Statistiques", "Aucun fournisseur enregistré")
+                return
+            
+            # Fournisseurs avec email
+            with_email = self.conn.execute("SELECT COUNT(*) FROM Fournisseurs WHERE email IS NOT NULL AND email != ''").fetchone()[0]
+            
+            # Fournisseurs avec adresse
+            with_address = self.conn.execute("SELECT COUNT(*) FROM Fournisseurs WHERE adresse IS NOT NULL AND adresse != ''").fetchone()[0]
+            
+            stats_text = f"""📊 Statistiques des fournisseurs
+
+🏢 Total fournisseurs: {total_suppliers}
+📧 Avec email: {with_email} ({(with_email/total_suppliers*100):.1f}%)
+📍 Avec adresse: {with_address} ({(with_address/total_suppliers*100):.1f}%)
+
+📈 Complétude des données: {((with_email + with_address)/(total_suppliers*2)*100):.1f}%"""
+            
+            messagebox.showinfo("📊 Statistiques Fournisseurs", stats_text)
+            
+        except Exception as e:
+            messagebox.showerror("❌ Erreur", f"Erreur lors du calcul des statistiques: {str(e)}")
 
 
