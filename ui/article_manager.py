@@ -1,10 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import sqlite3
 import barcode
 from barcode.writer import ImageWriter
 from PIL import Image, ImageTk
 import os
+import shutil
 from ui.theme_manager import theme_manager
 
 class ArticleForm(tk.Toplevel):
@@ -162,6 +163,11 @@ class ArticleForm(tk.Toplevel):
         tk.Button(barcode_content, text="🔄 Générer code-barres", command=self.generer_code_barre,
                  font=('Arial', 11, 'bold'), **generate_style, padx=15, pady=8).pack(pady=(0, 15))
         
+        # Bouton télécharger code-barres
+        download_style = theme_manager.get_button_style("success")
+        tk.Button(barcode_content, text="⬇️ Télécharger code-barres", command=self.telecharger_code_barre,
+                 font=('Arial', 11, 'bold'), **download_style, padx=15, pady=8).pack(pady=(0, 15))
+        
         # Zone d'affichage du code-barres
         self.barcode_img_label = tk.Label(barcode_content, bg=theme_manager.get_color("bg_secondary"))
         self.barcode_img_label.pack()
@@ -232,6 +238,38 @@ class ArticleForm(tk.Toplevel):
             messagebox.showinfo("✅ Succès", "Code-barres généré avec succès")
         except Exception as e:
             messagebox.showerror("❌ Erreur", f"Erreur lors de la génération du code-barres: {str(e)}")
+
+    def telecharger_code_barre(self):
+        """Permet de télécharger le code-barres dans un emplacement choisi par l'utilisateur"""
+        code_barre_path = self.code_barre_var.get()
+        if not code_barre_path or not os.path.exists(code_barre_path):
+            messagebox.showerror("Erreur", "Aucun code-barres généré pour cet article")
+            return
+
+        # Demander à l'utilisateur où sauvegarder le fichier
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[
+                ("Images PNG", "*.png"),
+                ("Images JPEG", "*.jpg"),
+                ("Tous les fichiers", "*.*")
+            ],
+            initialfile=f"code_barre_{self.code_article_var.get()}.png"
+        )
+
+        if file_path:
+            try:
+                # Copier le fichier vers l'emplacement choisi
+                shutil.copy2(code_barre_path, file_path)
+                messagebox.showinfo(
+                    "Succès", 
+                    f"Code-barres téléchargé avec succès dans :\n{file_path}"
+                )
+            except Exception as e:
+                messagebox.showerror(
+                    "Erreur", 
+                    f"Erreur lors du téléchargement : {str(e)}"
+                )
 
     def save_article(self):
         # Validation des champs
