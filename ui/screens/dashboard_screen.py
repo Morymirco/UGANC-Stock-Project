@@ -1,14 +1,38 @@
-"""
-Écran du tableau de bord principal de l'application.
-"""
 import customtkinter as ctk
-from typing import Dict, Any
+from typing import Dict
 from datetime import datetime
 
 class DashboardScreen(ctk.CTkFrame):
     """
-    Écran du tableau de bord principal avec des indicateurs et des graphiques.
+    Écran du tableau de bord principal avec des indicateurs, graphiques et activités interactives.
     """
+    
+    # Constantes de style
+    COLORS = {
+        "light": {
+            "text": "#212529",
+            "subtext": "#666666",
+            "border": "#e0e0e0",
+            "chart_bg": "#f8f9fa",
+            "activity_bg": "#f8f9fa"
+        },
+        "dark": {
+            "text": "#f8f9fa",
+            "subtext": "#999999",
+            "border": "#333333",
+            "chart_bg": "#252525",
+            "activity_bg": "#252525"
+        }
+    }
+    FONTS = {
+        "title": ("Segoe UI", 24, "bold"),
+        "subtitle": ("Segoe UI", 14),
+        "indicator": ("Segoe UI", 22, "bold"),
+        "subtext": ("Segoe UI", 12),
+        "activity_title": ("Segoe UI", 13, "bold"),
+        "activity_desc": ("Segoe UI", 12),
+        "activity_time": ("Segoe UI", 11)
+    }
     
     def __init__(self, parent, **kwargs):
         """
@@ -19,108 +43,60 @@ class DashboardScreen(ctk.CTkFrame):
             **kwargs: Arguments supplémentaires pour le CTkFrame
         """
         super().__init__(parent, fg_color="transparent", **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        print("DEBUG: Initialisation de DashboardScreen")
         
-        # En-tête
+        # Configuration de la grille principale
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((1, 2, 3), weight=1)
+        
+        # Créer les sections
+        self._create_header()
+        self._create_indicators()
+        self._create_charts()
+        self._create_activities()
+    
+    def _create_header(self):
+        """Crée l'en-tête avec le titre et la date."""
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 20))
         
-        # Titre et date
         self.title_label = ctk.CTkLabel(
             self.header_frame,
             text="Tableau de bord",
-            font=("Segoe UI", 24, "bold")
+            font=self.FONTS["title"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"])
         )
         self.title_label.pack(side="left")
         
         self.date_label = ctk.CTkLabel(
             self.header_frame,
             text=datetime.now().strftime("%A %d %B %Y"),
-            font=("Segoe UI", 14),
-            text_color=("#666666", "#999999")
+            font=self.FONTS["subtitle"],
+            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"])
         )
         self.date_label.pack(side="right")
-        
-        # Grille pour les indicateurs
+    
+    def _create_indicators(self):
+        """Crée les cartes d'indicateurs statistiques."""
         self.indicators_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.indicators_frame.grid(row=1, column=0, sticky="nsew", pady=(0, 20))
+        self.indicators_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="cols")
         
-        # Configuration de la grille des indicateurs
-        for i in range(3):
-            self.indicators_frame.grid_columnconfigure(i, weight=1, uniform="cols")
-        
-        # Indicateurs (cartes statistiques)
-        self.indicators = {
-            "total_stock": self._create_indicator(
-                "📦 Stock total", "1,245 articles", "+12% vs mois dernier", "#4361ee"
-            ),
-            "ventes_mois": self._create_indicator(
-                "💰 Ventes du mois", "248 ventes", "+8% vs mois dernier", "#4cc9f0"
-            ),
-            "alertes": self._create_indicator(
-                "⚠️ Alertes", "5 articles en alerte", "Niveau bas", "#f72585"
-            )
-        }
-        
-        # Positionner les indicateurs
-        for i, (_, indicator) in enumerate(self.indicators.items()):
-            indicator.grid(row=0, column=i, padx=10, sticky="nsew")
-        
-        # Graphiques
-        self.charts_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.charts_frame.grid(row=2, column=0, sticky="nsew")
-        self.charts_frame.grid_columnconfigure(0, weight=2, uniform="chart_cols")
-        self.charts_frame.grid_columnconfigure(1, weight=1, uniform="chart_cols")
-        
-        # Graphique des ventes
-        self.sales_chart = self._create_chart(
-            self.charts_frame, "Ventes des 30 derniers jours", "chart_sales"
-        )
-        self.sales_chart.grid(row=0, column=0, padx=(0, 10), pady=(0, 20), sticky="nsew")
-        
-        # Graphique des catégories
-        self.categories_chart = self._create_chart(
-            self.charts_frame, "Répartition par catégorie", "chart_categories"
-        )
-        self.categories_chart.grid(row=0, column=1, pady=(0, 20), sticky="nsew")
-        
-        # Dernières activités
-        self.activities_frame = ctk.CTkFrame(self, corner_radius=10)
-        self.activities_frame.grid(row=3, column=0, sticky="nsew")
-        self.activities_frame.grid_columnconfigure(0, weight=1)
-        
-        # En-tête des activités
-        activities_header = ctk.CTkLabel(
-            self.activities_frame,
-            text="Dernières activités",
-            font=("Segoe UI", 16, "bold"),
-            anchor="w",
-            padx=20,
-            pady=15
-        )
-        activities_header.grid(row=0, column=0, sticky="ew")
-        
-        # Liste des activités
-        self.activities_list = ctk.CTkFrame(
-            self.activities_frame, 
-            fg_color="transparent"
-        )
-        self.activities_list.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
-        
-        # Exemples d'activités
-        activities = [
-            ("📦", "Nouvelle entrée en stock", "Ajout de 50 unités de Clavier mécanique", "Il y a 2 minutes"),
-            ("💰", "Nouvelle vente", "Commande #4587 - 1 250 000 FCFA", "Il y a 15 minutes"),
-            ("⚠️", "Alerte stock bas", "Souris Logitech - Seuil minimum atteint", "Il y a 1 heure")
+        indicators_data = [
+            ("📦 Stock total", "1,245 articles", "+12% vs mois dernier", "#4361ee"),
+            ("💰 Ventes du mois", "248 ventes", "+8% vs mois dernier", "#4cc9f0"),
+            ("⚠️ Alertes", "5 articles en alerte", "Niveau bas", "#f72585")
         ]
         
-        for i, (icon, title, desc, time) in enumerate(activities):
-            self._add_activity(icon, title, desc, time, i)
+        self.indicators = {}
+        for i, (title, value, subtext, color) in enumerate(indicators_data):
+            indicator = self._create_indicator(title, value, subtext, color)
+            indicator.grid(row=0, column=i, padx=10, sticky="nsew")
+            self.indicators[title.lower().replace(" ", "_")] = indicator
     
     def _create_indicator(self, title: str, value: str, subtext: str, color: str) -> ctk.CTkFrame:
         """
-        Crée une carte d'indicateur.
+        Crée une carte d'indicateur interactive.
         
         Args:
             title: Titre de l'indicateur
@@ -135,37 +111,33 @@ class DashboardScreen(ctk.CTkFrame):
             self.indicators_frame,
             corner_radius=10,
             border_width=1,
-            border_color=("#e0e0e0", "#333333")
+            border_color=(self.COLORS["light"]["border"], self.COLORS["dark"]["border"])
         )
         
-        # Conteneur interne
         inner_frame = ctk.CTkFrame(frame, fg_color="transparent")
         inner_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Titre
         title_label = ctk.CTkLabel(
             inner_frame,
             text=title,
-            font=("Segoe UI", 12),
-            text_color=("#666666", "#999999"),
+            font=self.FONTS["subtext"],
+            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
             anchor="w"
         )
         title_label.pack(fill="x")
         
-        # Valeur
         value_label = ctk.CTkLabel(
             inner_frame,
             text=value,
-            font=("Segoe UI", 22, "bold"),
+            font=self.FONTS["indicator"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
             anchor="w"
         )
         value_label.pack(fill="x", pady=(5, 0))
         
-        # Texte secondaire avec indicateur de couleur
         sub_frame = ctk.CTkFrame(inner_frame, fg_color="transparent")
         sub_frame.pack(fill="x", pady=(5, 0))
         
-        # Point de couleur
         color_dot = ctk.CTkLabel(
             sub_frame,
             text="•",
@@ -175,24 +147,37 @@ class DashboardScreen(ctk.CTkFrame):
         )
         color_dot.pack(side="left")
         
-        # Texte
         subtext_label = ctk.CTkLabel(
             sub_frame,
             text=subtext,
-            font=("Segoe UI", 12),
-            text_color=("#666666", "#999999"),
+            font=self.FONTS["subtext"],
+            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
             anchor="w"
         )
         subtext_label.pack(side="left", fill="x", expand=True)
         
+        # Ajouter interactivité
+        frame.bind("<Button-1>", lambda e: self._on_indicator_click(title))
         return frame
     
-    def _create_chart(self, parent, title: str, chart_id: str) -> ctk.CTkFrame:
+    def _create_charts(self):
+        """Crée les graphiques."""
+        self.charts_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.charts_frame.grid(row=2, column=0, sticky="nsew", pady=(0, 20))
+        self.charts_frame.grid_columnconfigure(0, weight=2, uniform="chart_cols")
+        self.charts_frame.grid_columnconfigure(1, weight=1, uniform="chart_cols")
+        
+        self.sales_chart = self._create_chart("Ventes des 30 derniers jours", "chart_sales")
+        self.sales_chart.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
+        
+        self.categories_chart = self._create_chart("Répartition par catégorie", "chart_categories")
+        self.categories_chart.grid(row=0, column=1, sticky="nsew")
+    
+    def _create_chart(self, title: str, chart_id: str) -> ctk.CTkFrame:
         """
-        Crée un cadre pour un graphique.
+        Crée un cadre pour un graphique interactif.
         
         Args:
-            parent: Widget parent
             title: Titre du graphique
             chart_id: Identifiant unique du graphique
             
@@ -200,38 +185,68 @@ class DashboardScreen(ctk.CTkFrame):
             Le frame du graphique
         """
         frame = ctk.CTkFrame(
-            parent,
+            self.charts_frame,
             corner_radius=10,
             border_width=1,
-            border_color=("#e0e0e0", "#333333")
+            border_color=(self.COLORS["light"]["border"], self.COLORS["dark"]["border"])
         )
         
-        # En-tête
         header = ctk.CTkLabel(
             frame,
             text=title,
-            font=("Segoe UI", 14, "bold"),
+            font=self.FONTS["subtitle"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
             anchor="w",
             padx=15,
             pady=12
         )
         header.pack(fill="x")
         
-        # Zone du graphique (simulée)
-        chart = ctk.CTkLabel(
+        chart = ctk.CTkButton(
             frame,
-            text=f"[{chart_id}] Graphique en cours de chargement...",
-            corner_radius=8,
-            fg_color=("#f8f9fa", "#252525"),
-            height=200
+            text=f"Cliquer pour charger {chart_id}",
+            fg_color=(self.COLORS["light"]["chart_bg"], self.COLORS["dark"]["chart_bg"]),
+            hover_color=("#e0e0e0", "#333333"),
+            font=self.FONTS["subtext"],
+            height=200,
+            command=lambda: self._on_chart_click(chart_id)
         )
         chart.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         
         return frame
     
+    def _create_activities(self):
+        """Crée la section des dernières activités."""
+        self.activities_frame = ctk.CTkFrame(self, corner_radius=10)
+        self.activities_frame.grid(row=3, column=0, sticky="nsew")
+        self.activities_frame.grid_columnconfigure(0, weight=1)
+        
+        header = ctk.CTkLabel(
+            self.activities_frame,
+            text="Dernières activités",
+            font=self.FONTS["subtitle"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            anchor="w",
+            padx=20,
+            pady=15
+        )
+        header.pack(fill="x")
+        
+        self.activities_list = ctk.CTkFrame(self.activities_frame, fg_color="transparent")
+        self.activities_list.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        
+        activities = [
+            ("📦", "Nouvelle entrée", "Ajout de 50 claviers", "Il y a 2 min"),
+            ("💰", "Nouvelle vente", "Commande #4587 - 1 250 000 FCFA", "Il y a 15 min"),
+            ("⚠️", "Alerte stock", "Souris Logitech - Stock bas", "Il y a 1 h")
+        ]
+        
+        for i, (icon, title, desc, time) in enumerate(activities):
+            self._add_activity(icon, title, desc, time, i)
+    
     def _add_activity(self, icon: str, title: str, desc: str, time: str, index: int):
         """
-        Ajoute une activité à la liste.
+        Ajoute une activité interactive à la liste.
         
         Args:
             icon: Icône de l'activité
@@ -240,71 +255,78 @@ class DashboardScreen(ctk.CTkFrame):
             time: Temps écoulé
             index: Position dans la liste
         """
-        # Créer un cadre pour l'activité
         activity_frame = ctk.CTkFrame(
             self.activities_list,
-            fg_color=("#f8f9fa", "#252525") if index % 2 == 0 else "transparent",
+            fg_color=(self.COLORS["light"]["activity_bg"], self.COLORS["dark"]["activity_bg"]) if index % 2 == 0 else "transparent",
             corner_radius=8
         )
         activity_frame.pack(fill="x", pady=2)
         
-        # Conteneur principal
         container = ctk.CTkFrame(activity_frame, fg_color="transparent")
         container.pack(fill="x", padx=10, pady=8)
         
-        # Icône
         icon_label = ctk.CTkLabel(
             container,
             text=icon,
             font=("Arial", 16),
             width=30,
-            anchor="center"
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"])
         )
         icon_label.pack(side="left")
         
-        # Contenu
         content_frame = ctk.CTkFrame(container, fg_color="transparent")
         content_frame.pack(side="left", fill="x", expand=True)
         
-        # Titre
         title_label = ctk.CTkLabel(
             content_frame,
             text=title,
-            font=("Segoe UI", 13, "bold"),
+            font=self.FONTS["activity_title"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
             anchor="w"
         )
         title_label.pack(fill="x")
         
-        # Description
         desc_label = ctk.CTkLabel(
             content_frame,
             text=desc,
-            font=("Segoe UI", 12),
-            text_color=("#666666", "#999999"),
+            font=self.FONTS["activity_desc"],
+            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
             anchor="w"
         )
         desc_label.pack(fill="x")
         
-        # Temps
         time_label = ctk.CTkLabel(
             container,
             text=time,
-            font=("Segoe UI", 11),
-            text_color=("#999999", "#666666"),
+            font=self.FONTS["activity_time"],
+            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
             anchor="e"
         )
         time_label.pack(side="right")
-
+        
+        # Ajouter interactivité
+        activity_frame.bind("<Button-1>", lambda e: self._on_activity_click(title, desc))
+    
+    def _on_indicator_click(self, title: str):
+        """Gère le clic sur un indicateur."""
+        print(f"DEBUG: Clic sur l'indicateur '{title}'")
+        self.title_label.configure(text=f"Tableau de bord - {title}")
+    
+    def _on_chart_click(self, chart_id: str):
+        """Gère le clic sur un graphique."""
+        print(f"DEBUG: Clic sur le graphique '{chart_id}'")
+        for chart in [self.sales_chart, self.categories_chart]:
+            chart.winfo_children()[1].configure(text=f"Graphique {chart_id} chargé")
+    
+    def _on_activity_click(self, title: str, desc: str):
+        """Gère le clic sur une activité."""
+        print(f"DEBUG: Clic sur l'activité '{title}': {desc}")
+        self.title_label.configure(text=f"Activité: {title}")
 
 if __name__ == "__main__":
-    # Exemple d'utilisation
     root = ctk.CTk()
     root.title("Tableau de bord - UGANC Stock")
     root.geometry("1000x800")
-    
-    # Créer l'écran du tableau de bord
     dashboard = DashboardScreen(root)
     dashboard.pack(fill="both", expand=True, padx=20, pady=20)
-    
-    # Démarrer la boucle principale
     root.mainloop()

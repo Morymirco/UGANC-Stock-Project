@@ -3,344 +3,441 @@ from typing import Dict, Callable, Optional
 
 class Sidebar(ctk.CTkFrame):
     """
-Barre latérale moderne et personnalisable pour l'application de gestion de stock.
-Utilise CustomTkinter pour un rendu moderne et une meilleure expérience utilisateur.
-"""
+    Professional, animated, collapsible sidebar for UGANC Stock.
+    """
+    
+    # Style constants
+    COLORS = {
+        "light": {
+            "bg": "#f7fafc",
+            "sidebar_bg": "#ffffff",
+            "hover": "#edf2f7",
+            "active": "#e2e8ff",
+            "gradient_start": "#4c51bf",
+            "gradient_end": "#7f9cf5",
+            "text": "#2d3748",
+            "primary": "#4c51bf",
+            "tooltip_bg": "#2d3748",
+            "tooltip_text": "#ffffff",
+            "logout_border": "#e53e3e",
+            "logout_text": "#e53e3e",
+            "logout_hover": "#fed7d7"
+        },
+        "dark": {
+            "bg": "#1a202c",
+            "sidebar_bg": "#2d3748",
+            "hover": "#4a5568",
+            "active": "#3c4a6b",
+            "gradient_start": "#5a67d8",
+            "gradient_end": "#a3bffa",
+            "text": "#e2e8f0",
+            "primary": "#5a67d8",
+            "tooltip_bg": "#e2e8f0",
+            "tooltip_text": "#2d3748",
+            "logout_border": "#f56565",
+            "logout_text": "#f56565",
+            "logout_hover": "#742a2a"
+        }
+    }
+    FONTS = {
+        "logo": ("Inter", 20),
+        "app_name": ("Inter", 15, "bold"),
+        "button": ("Inter", 13),
+        "button_active": ("Inter", 13, "bold"),
+        "logout": ("Inter", 12, "bold"),
+        "tooltip": ("Inter", 11)
+    }
+    SIZES = {
+        "full_width": 220,
+        "collapsed_width": 60,
+        "header_height": 60,
+        "button_height": 40,
+        "footer_height": 60,
+        "indicator_width": 3,
+        "animation_steps": 10,
+        "animation_delay": 20
+    }
     
     def __init__(self, parent, on_button_click: Callable[[str], None] = None, **kwargs):
         """
-        Initialise la barre latérale avec un design moderne.
+        Initialize the sidebar.
         
         Args:
-            parent: Le widget parent
-            on_button_click: Fonction de rappel appelée lorsqu'un bouton est cliqué
-            **kwargs: Arguments supplémentaires pour le CTkFrame
+            parent: Parent widget
+            on_button_click: Callback for button clicks
+            **kwargs: Additional arguments for CTkFrame
         """
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, fg_color=(self.COLORS["light"]["sidebar_bg"], 
+                                         self.COLORS["dark"]["sidebar_bg"]), 
+                        corner_radius=0, width=self.SIZES["full_width"], **kwargs)
+        print("DEBUG: Initializing Sidebar")
+        
         self.on_button_click = on_button_click
-        self.buttons: Dict[str, ctk.CTkButton] = {}
+        self.buttons: Dict[str, Dict] = {}
         self.active_button: Optional[str] = None
+        self.is_collapsed = False
+        self.tooltip_window = None
         
-        # Récupérer les couleurs du thème
-        self.theme_colors = {
-            "light": {
-                "bg": "#f8f9fa",
-                "sidebar_bg": "#ffffff",
-                "hover": "#e9ecef",
-                "active": "#e0f7fa",
-                "text": "#212529",
-                "primary": "#4361ee"
-            },
-            "dark": {
-                "bg": "#121212",
-                "sidebar_bg": "#1e1e1e",
-                "hover": "#2d2d2d",
-                "active": "#1e3a5f",
-                "text": "#f8f9fa",
-                "primary": "#4361ee"
-            }
-        }
-        
-        # Configuration du style
-        self.configure(
-            fg_color=(self.theme_colors["light"]["sidebar_bg"], 
-                     self.theme_colors["dark"]["sidebar_bg"]),
-            corner_radius=0
-        )
-        
-        # Création des widgets
-        self.create_widgets()
-    
-    def create_widgets(self):
-        """Crée et positionne les widgets de la barre latérale avec un design moderne"""
-        # Configuration de la grille principale
+        # Configure grid
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)  # Ligne principale pour le contenu
+        self.grid_rowconfigure(1, weight=1)
         
-        # En-tête avec logo
-        self.header_frame = ctk.CTkFrame(self, fg_color="transparent", height=80)
-        self.header_frame.grid(row=0, column=0, sticky="nsew", padx=15, pady=(15, 5))
+        # Create widgets
+        self._create_widgets()
+    
+    def _create_widgets(self):
+        """Create sidebar widgets."""
+        print("DEBUG: Creating widgets")
         
-        # Logo et nom de l'application
+        # Header
+        self.header_frame = ctk.CTkFrame(self, fg_color="transparent", height=self.SIZES["header_height"])
+        self.header_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 5))
+        
+        self.toggle_btn = ctk.CTkButton(
+            self.header_frame,
+            text="☰",
+            font=self.FONTS["logo"],
+            fg_color="transparent",
+            hover_color=(self.COLORS["light"]["hover"], self.COLORS["dark"]["hover"]),
+            text_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"]),
+            width=30,
+            command=self._toggle_collapse
+        )
+        self.toggle_btn.pack(side="left")
+        
         self.logo_label = ctk.CTkLabel(
             self.header_frame,
             text="📊",
-            font=("Arial", 24),
-            text_color=(self.theme_colors["light"]["primary"], 
-                       self.theme_colors["dark"]["primary"])
+            font=self.FONTS["logo"],
+            text_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"])
         )
-        self.logo_label.pack(side="left", padx=(0, 10))
+        self.logo_label.pack(side="left", padx=(5, 8))
         
         self.app_name = ctk.CTkLabel(
             self.header_frame,
             text="UGANC Stock",
-            font=("Arial", 18, "bold"),
-            text_color=(self.theme_colors["light"]["text"], 
-                       self.theme_colors["dark"]["text"])
+            font=self.FONTS["app_name"],
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"])
         )
         self.app_name.pack(side="left")
         
-        # Cadre pour les boutons de navigation
+        # Navigation buttons
         self.buttons_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.buttons_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         self.buttons_frame.grid_columnconfigure(0, weight=1)
         
-        # Liste des boutons de navigation
         menu_items = [
             ("Tableau de bord", "📊", "dashboard"),
-            ("Gestion des articles", "📝", "articles"),
-            ("Gestion des stocks", "📦", "stock"),
+            ("Articles", "📝", "articles"),
+            ("Stocks", "📦", "stock"),
             ("Paramètres", "⚙️", "parametres")
         ]
         
-        # Création des boutons de navigation
         for i, (text, icon, key) in enumerate(menu_items):
-            # Cadre pour le bouton et l'indicateur
-            btn_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent", height=50)
-            btn_frame.grid(row=i, column=0, sticky="ew", pady=2)
-            btn_frame.grid_columnconfigure(1, weight=1)
-            
-            # Indicateur de sélection
-            indicator = ctk.CTkLabel(
-                btn_frame, 
-                text="", 
-                width=4,
-                corner_radius=2,
-                fg_color="transparent"
-            )
-            indicator.grid(row=0, column=0, sticky="ns", padx=5)
-            
-            # Bouton de navigation
-            btn = ctk.CTkButton(
-                btn_frame,
-                text=f"  {icon}  {text}",
-                font=("Segoe UI", 14),
-                anchor="w",
-                fg_color="transparent",
-                text_color=(self.theme_colors["light"]["text"], 
-                           self.theme_colors["dark"]["text"]),
-                hover_color=(self.theme_colors["light"]["hover"], 
-                            self.theme_colors["dark"]["hover"]),
-                corner_radius=8,
-                height=45,
-                command=lambda t=text: self._on_button_click(t)
-            )
-            btn.grid(row=0, column=1, sticky="ew", padx=(0, 5))
-            
-            # Stocker les références
-            self.buttons[key] = {
-                'button': btn,
-                'indicator': indicator,
-                'frame': btn_frame
-            }
-            
-            # Événements de survol
-            btn.bind("<Enter>", lambda e, k=key: self._on_hover(k, True))
-            btn.bind("<Leave>", lambda e, k=key: self._on_hover(k, False))
-        
-        # Espacement
+            self._create_button(text, icon, key, i)
         self.buttons_frame.rowconfigure(len(menu_items), weight=1)
         
-        # Pied de page avec bouton de déconnexion
-        self.footer_frame = ctk.CTkFrame(self, fg_color="transparent", height=80)
-        self.footer_frame.grid(row=2, column=0, sticky="sew", padx=10, pady=(0, 15))
+        # Footer
+        self.footer_frame = ctk.CTkFrame(self, fg_color="transparent", height=self.SIZES["footer_height"])
+        self.footer_frame.grid(row=2, column=0, sticky="sew", padx=10, pady=(0, 10))
         
-        # Bouton de déconnexion
         self.logout_btn = ctk.CTkButton(
             self.footer_frame,
             text="Déconnexion",
-            font=("Segoe UI", 13, "bold"),
+            font=self.FONTS["logout"],
             fg_color="transparent",
-            border_width=2,
-            border_color=("#dc3545", "#ff6b6b"),
-            text_color=("#dc3545", "#ff6b6b"),
-            hover_color=("#f8d7da", "#84202920"),
-            corner_radius=8,
-            height=45,
-            anchor="center",
-            command=lambda: self._on_button_click("déconnexion")
+            border_width=1,
+            border_color=(self.COLORS["light"]["logout_border"], self.COLORS["dark"]["logout_border"]),
+            text_color=(self.COLORS["light"]["logout_text"], self.COLORS["dark"]["logout_text"]),
+            hover_color=(self.COLORS["light"]["logout_hover"], self.COLORS["dark"]["logout_hover"]),
+            corner_radius=6,
+            height=self.SIZES["button_height"],
+            command=lambda: self._on_button_click("Déconnexion")
         )
         self.logout_btn.pack(fill="x", pady=(5, 0))
     
-    def _on_button_click(self, button_name: str):
+    def _create_button(self, text: str, icon: str, key: str, row: int):
         """
-        Gère le clic sur un bouton de la barre latérale avec animation.
+        Create a navigation button with animation support.
         
         Args:
-            button_name: Nom du bouton cliqué
+            text: Button text
+            icon: Button icon
+            key: Unique button key
+            row: Grid row
         """
-        # Convertir le nom du bouton en clé
+        btn_frame = ctk.CTkFrame(self.buttons_frame, fg_color="transparent", height=self.SIZES["button_height"])
+        btn_frame.grid(row=row, column=0, sticky="ew", pady=3)
+        btn_frame.grid_columnconfigure(1, weight=1)
+        
+        indicator = ctk.CTkLabel(
+            btn_frame, 
+            text="", 
+            width=self.SIZES["indicator_width"],
+            corner_radius=2,
+            fg_color="transparent"
+        )
+        indicator.grid(row=0, column=0, sticky="ns", padx=5)
+        
+        btn = ctk.CTkButton(
+            btn_frame,
+            text=f"{icon}  {text}" if not self.is_collapsed else icon,
+            font=self.FONTS["button"],
+            anchor="w" if not self.is_collapsed else "center",
+            fg_color="transparent",
+            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            hover_color=(self.COLORS["light"]["hover"], self.COLORS["dark"]["hover"]),
+            corner_radius=6,
+            height=self.SIZES["button_height"],
+            command=lambda: self._on_button_click(text)
+        )
+        btn.grid(row=0, column=1, sticky="ew", padx=(0, 5))
+        
+        self.buttons[key] = {
+            'button': btn, 
+            'indicator': indicator, 
+            'frame': btn_frame, 
+            'text': text, 
+            'row': row
+        }
+        
+        btn.bind("<Enter>", lambda e: self._on_hover(key, True))
+        btn.bind("<Leave>", lambda e: self._on_hover(key, False))
+        btn.bind("<Enter>", lambda e: self._show_tooltip(btn, text), add="+")
+        btn.bind("<Leave>", lambda e: self._hide_tooltip(), add="+")
+    
+    def _toggle_collapse(self):
+        """Toggle sidebar collapse state with animation."""
+        print("DEBUG: Toggling sidebar collapse")
+        self.is_collapsed = not self.is_collapsed
+        target_width = self.SIZES["collapsed_width"] if self.is_collapsed else self.SIZES["full_width"]
+        
+        # Animate width
+        self._animate_width(target_width)
+        
+        # Update button appearance
+        for key, elements in self.buttons.items():
+            btn = elements['button']
+            text = elements['text']
+            btn.configure(
+                text=icon if self.is_collapsed else f"{icon}  {text}",
+                anchor="center" if self.is_collapsed else "w"
+            )
+        
+        # Update app name and logout button
+        self.app_name.pack_forget() if self.is_collapsed else self.app_name.pack(side="left")
+        self.logout_btn.configure(
+            text="🚪" if self.is_collapsed else "Déconnexion",
+            anchor="center" if self.is_collapsed else "w"
+        )
+    
+    def _animate_width(self, target_width: int):
+        """Animate sidebar width transition."""
+        current_width = self.winfo_width() or self.SIZES["full_width"]  # Fallback if not rendered
+        if current_width == target_width:
+            return
+        
+        step = (target_width - current_width) / self.SIZES["animation_steps"]
+        
+        def animate(step_count=0):
+            if step_count >= self.SIZES["animation_steps"]:
+                self.configure(width=target_width)
+                self.buttons_frame.configure(width=target_width - 10)
+                print(f"DEBUG: Animation width completed at {target_width}px")
+                return
+            
+            new_width = current_width + step * (step_count + 1)
+            self.configure(width=int(new_width))
+            self.buttons_frame.configure(width=int(new_width - 10))
+            self.after(self.SIZES["animation_delay"], lambda: animate(step_count + 1))
+        
+        print(f"DEBUG: Animating width from {current_width} to {target_width}")
+        animate()
+    
+    def _show_tooltip(self, widget, text: str):
+        """Show tooltip for a button in collapsed mode."""
+        if not self.is_collapsed:
+            return
+        self._hide_tooltip()
+        x, y = widget.winfo_rootx() + widget.winfo_width() + 5, widget.winfo_rooty() + 10
+        self.tooltip_window = ctk.CTkToplevel(self)
+        self.tooltip_window.wm_overrideredirect(True)
+        self.tooltip_window.wm_geometry(f"+{x}+{y}")
+        label = ctk.CTkLabel(
+            self.tooltip_window,
+            text=text,
+            font=self.FONTS["tooltip"],
+            fg_color=(self.COLORS["light"]["tooltip_bg"], self.COLORS["dark"]["tooltip_bg"]),
+            text_color=(self.COLORS["light"]["tooltip_text"], self.COLORS["dark"]["tooltip_text"]),
+            corner_radius=4,
+            padx=8,
+            pady=4
+        )
+        label.pack()
+        print(f"DEBUG: Showing tooltip for '{text}'")
+    
+    def _hide_tooltip(self):
+        """Hide tooltip."""
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+            print("DEBUG: Hiding tooltip")
+    
+    def _on_button_click(self, button_name: str):
+        """
+        Handle button click with animation.
+        
+        Args:
+            button_name: Name of clicked button
+        """
+        print(f"DEBUG: Click on '{button_name}'")
         key = button_name.lower()
-        
-        # Mettre à jour le style du bouton actif
-        self.set_active_button(key)
-        
-        # Animer l'indicateur de sélection
-        if key in self.buttons:
-            self._animate_indicator(key)
-        
-        # Appeler la fonction de rappel
-        if self.on_button_click:
-            self.on_button_click(button_name)
+        if key in self.buttons or button_name == "Déconnexion":
+            self.set_active_button(key)
+            if self.on_button_click:
+                print(f"DEBUG: Calling on_button_click with '{button_name}'")
+                self.on_button_click(button_name)
+            else:
+                print("DEBUG: No callback defined")
+        else:
+            print(f"ERROR: Key '{key}' not found")
     
     def _on_hover(self, button_key: str, is_hovered: bool):
         """
-        Gère l'effet de survol sur les boutons.
+        Handle hover effect.
         
         Args:
-            button_key: Clé du bouton survolé
-            is_hovered: Si le bouton est survolé
+            button_key: Button key
+            is_hovered: Hover state
         """
-        if button_key in self.buttons:
-            btn = self.buttons[button_key]['button']
-            indicator = self.buttons[button_key]['indicator']
-            
-            if is_hovered:
-                # Effet de survol
-                btn.configure(
-                    fg_color=(self.theme_colors["light"]["hover"], 
-                             self.theme_colors["dark"]["hover"])
-                )
-                indicator.configure(
-                    fg_color=(self.theme_colors["light"]["primary"], 
-                             self.theme_colors["dark"]["primary"])
-                )
-            else:
-                # Réinitialiser si ce n'est pas le bouton actif
-                if button_key != self.active_button:
-                    btn.configure(fg_color="transparent")
-                    indicator.configure(fg_color="transparent")
+        if button_key not in self.buttons:
+            print(f"DEBUG: Key '{button_key}' not found for hover")
+            return
+        print(f"DEBUG: Hover {'on' if is_hovered else 'off'} for '{button_key}'")
+        
+        btn = self.buttons[button_key]['button']
+        indicator = self.buttons[button_key]['indicator']
+        
+        if is_hovered:
+            btn.configure(fg_color=(self.COLORS["light"]["hover"], self.COLORS["dark"]["hover"]))
+            indicator.configure(fg_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"]))
+        elif button_key != self.active_button:
+            btn.configure(fg_color="transparent")
+            indicator.configure(fg_color="transparent")
     
     def _animate_indicator(self, button_key: str):
         """
-        Anime l'indicateur de sélection vers le bouton cliqué.
+        Animate selection indicator with smooth transition.
         
         Args:
-            button_key: Clé du bouton sélectionné
+            button_key: Selected button key
         """
-        if button_key in self.buttons:
-            # Réinitialiser tous les indicateurs
-            for key, elements in self.buttons.items():
-                elements['indicator'].configure(fg_color="transparent")
-                elements['button'].configure(
-                    font=("Segoe UI", 14),
-                    text_color=(self.theme_colors["light"]["text"], 
-                               self.theme_colors["dark"]["text"])
-                )
-            
-            # Mettre en surbrillance le bouton actif
-            self.buttons[button_key]['indicator'].configure(
-                fg_color=(self.theme_colors["light"]["primary"], 
-                         self.theme_colors["dark"]["primary"])
-            )
-            self.buttons[button_key]['button'].configure(
-                font=("Segoe UI", 14, "bold"),
-                text_color=(self.theme_colors["light"]["primary"], 
-                           self.theme_colors["dark"]["primary"])
-            )
-            
-            # Faire défiler jusqu'au bouton si nécessaire
-            self.buttons_frame._parent_canvas.yview_moveto(0)
-    
-    def set_active_button(self, button_name: str):
-        """
-        Définit le bouton actif et met à jour l'interface.
+        if button_key not in self.buttons:
+            print(f"DEBUG: Key '{button_key}' not found for animation")
+            return
+        print(f"DEBUG: Animating indicator for '{button_key}'")
         
-        Args:
-            button_name: Nom ou clé du bouton à définir comme actif
-        """
-        # Convertir le nom du bouton en clé si nécessaire
-        button_key = button_name.lower()
-        
-        # Mettre à jour le bouton actif
-        self.active_button = button_key
-        self._animate_indicator(button_key)
-        
-        # Mettre à jour les couleurs de survol
+        # Reset all buttons
         for key, elements in self.buttons.items():
-            if key != button_key:
-                elements['button'].configure(
-                    fg_color="transparent",
-                    hover_color=(self.theme_colors["light"]["hover"], 
-                                self.theme_colors["dark"]["hover"]),
-                    text_color=(self.theme_colors["light"]["text"], 
-                               self.theme_colors["dark"]["text"]),
-                    font=("Segoe UI", 14)
-                )
-            else:
-                elements['button'].configure(
-                    fg_color=(self.theme_colors["light"]["active"], 
-                             self.theme_colors["dark"]["active"]),
-                    hover_color=(self.theme_colors["light"]["active"], 
-                                self.theme_colors["dark"]["active"]),
-                    text_color=(self.theme_colors["light"]["primary"], 
-                               self.theme_colors["dark"]["primary"]),
-                    font=("Segoe UI", 14, "bold")
-                )
+            elements['indicator'].configure(fg_color="transparent")
+            elements['button'].configure(
+                font=self.FONTS["button"],
+                text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+                fg_color="transparent"
+            )
+        
+        # Animate active button
+        indicator = self.buttons[button_key]['indicator']
+        btn = self.buttons[button_key]['button']
+        indicator.configure(fg_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"]))
+        btn.configure(
+            font=self.FONTS["button_active"],
+            text_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"]),
+            fg_color=(self.COLORS["light"]["active"], self.COLORS["dark"]["active"])
+        )
+    
+    def set_active_button(self, button_key: str):
+        """
+        Set active button with animation.
+        
+        Args:
+            button_key: Key of active button
+        """
+        print(f"DEBUG: Setting active button: '{button_key}'")
+        self.active_button = button_key if button_key in self.buttons else None
+        if self.active_button:
+            self._animate_indicator(self.active_button)
+            for key, elements in self.buttons.items():
+                btn = elements['button']
+                if key == self.active_button:
+                    btn.configure(
+                        fg_color=(self.COLORS["light"]["active"], self.COLORS["dark"]["active"]),
+                        hover_color=(self.COLORS["light"]["active"], self.COLORS["dark"]["active"]),
+                        text_color=(self.COLORS["light"]["primary"], self.COLORS["dark"]["primary"]),
+                        font=self.FONTS["button_active"]
+                    )
+                else:
+                    btn.configure(
+                        fg_color="transparent",
+                        hover_color=(self.COLORS["light"]["hover"], self.COLORS["dark"]["hover"]),
+                        text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+                        font=self.FONTS["button"]
+                    )
     
     def get_active_button(self) -> Optional[str]:
-        """
-        Retourne le nom du bouton actuellement sélectionné.
-        
-        Returns:
-            str: Nom du bouton actif ou None si aucun bouton n'est sélectionné
-        """
+        """Return active button."""
+        print(f"DEBUG: Active button: '{self.active_button}'")
         return self.active_button
     
     def set_width(self, width: int):
-        """
-        Définit la largeur de la barre latérale.
-        
-        Args:
-            width: Largeur en pixels
-        """
+        """Set sidebar width."""
+        print(f"DEBUG: Setting width to {width}px")
         self.configure(width=width)
         self.buttons_frame.configure(width=width - 10)
     
     def set_theme(self, theme: str):
         """
-        Change le thème de la barre latérale (clair/sombre).
+        Change theme (light/dark).
         
         Args:
-            theme: 'light' pour le thème clair, 'dark' pour le thème sombre
+            theme: "light" or "dark"
         """
-        if theme.lower() == "dark":
-            # Thème sombre
-            self.configure(fg_color="#1a2a44")
-            self.buttons_frame.configure(fg_color="#1a2a44")
-            self.separator.configure(fg_color="#4a5a7a")
-            
-            # Mise à jour des couleurs des boutons pour le thème sombre
-            for btn in self.buttons.values():
-                btn.configure(
-                    text_color="#e6e9ef",
-                    hover_color="#2a3d66",
-                    fg_color="transparent"
-                )
-            self.logout_btn.configure(
-                text_color="#ff6b6b",
-                hover_color="#842029",
-                fg_color="transparent"
-            )
-        else:
-            # Thème clair
-            self.configure(fg_color="#e6f0fa")
-            self.buttons_frame.configure(fg_color="#e6f0fa")
-            self.separator.configure(fg_color="#b3c7e6")
-            
-            # Mise à jour des couleurs des boutons pour le thème clair
-            for btn in self.buttons.values():
-                btn.configure(
-                    text_color="#1a1e21",
-                    hover_color="#d1e0f0",
-                    fg_color="transparent"
-                )
-            self.logout_btn.configure(
-                text_color="#dc3545",
-                hover_color="#f8d7da",
-                fg_color="transparent"
+        print(f"DEBUG: Changing theme to '{theme}'")
+        theme = theme.lower()
+        if theme not in ["light", "dark"]:
+            print(f"DEBUG: Invalid theme '{theme}', using 'light'")
+            theme = "light"
+        
+        bg_color = self.COLORS[theme]["sidebar_bg"]
+        self.configure(fg_color=bg_color)
+        self.buttons_frame.configure(fg_color=bg_color)
+        
+        for key, elements in self.buttons.items():
+            btn = elements['button']
+            btn.configure(
+                text_color=self.COLORS[theme]["text"],
+                hover_color=self.COLORS[theme]["hover"],
+                fg_color="transparent" if key != self.active_button else self.COLORS[theme]["active"]
             )
         
-        # Si un bouton est actif, on le remet en surbrillance avec les nouvelles couleurs
-        if self.active_button and self.active_button in self.buttons:
+        self.logout_btn.configure(
+            text_color=self.COLORS[theme]["logout_text"],
+            hover_color=self.COLORS[theme]["logout_hover"],
+            border_color=self.COLORS[theme]["logout_border"],
+            fg_color="transparent"
+        )
+        
+        self.toggle_btn.configure(
+            text_color=self.COLORS[theme]["primary"],
+            hover_color=self.COLORS[theme]["hover"]
+        )
+        
+        if self.active_button:
             self.set_active_button(self.active_button)
+
+if __name__ == "__main__":
+    root = ctk.CTk()
+    root.geometry("300x600")
+    sidebar = Sidebar(root, on_button_click=lambda x: print(f"Clicked: {x}"))
+    sidebar.pack(fill="y", side="left")
+    root.mainloop()
