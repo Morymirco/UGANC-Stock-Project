@@ -4,26 +4,26 @@ from typing import Optional, Dict, List, Tuple, Callable
 
 class StockManager(ctk.CTkFrame):
     """
-    Interface de gestion du stock avec un design moderne, supportant les modes sombre et clair.
+    Interface de gestion du stock avec un design moderne en mode sombre, aligné avec le style du dashboard.
     """
     
-    # Constantes de style
+    # Style constants merged with dashboard
     COLORS = {
         "light": {
-            "text": "#212529",
-            "subtext": "#666666",
-            "border": "#e0e0e0",
-            "chart_bg": "#f8f9fa",
-            "activity_bg": "#f8f9fa",
-            "bg": "#f8f9fa",
+            "text": "#212529",  # From dashboard
+            "subtext": "#666666",  # From dashboard
+            "border": "#e0e0e0",  # From dashboard
+            "chart_bg": "#f8f9fa",  # From dashboard
+            "activity_bg": "#f8f9fa",  # From dashboard
+            "bg": "#f7fafc",  # From StockManager
             "fg": "#ffffff",
-            "primary": "#4361ee",
-            "primary_hover": "#3a56d4",
+            "primary": "#0d6efd",
+            "primary_hover": "#0b5ed7",
             "secondary": "#6c757d",
-            "secondary_hover": "#5a6268",
+            "secondary_hover": "#5c636a",
             "success": "#198754",
             "success_bg": "#d1e7dd",
-            "warning": "#ffc107",
+            "warning": "#fd7e14",
             "warning_bg": "#fff3cd",
             "danger": "#dc3545",
             "danger_hover": "#bb2d3b",
@@ -33,40 +33,40 @@ class StockManager(ctk.CTkFrame):
             "placeholder_text": "#6c757d"
         },
         "dark": {
-            "text": "#f8f9fa",
-            "subtext": "#999999",
-            "border": "#333333",
-            "chart_bg": "#252525",
-            "activity_bg": "#252525",
-            "bg": "#1a1a1a",
-            "fg": "#2d2d2d",
-            "primary": "#4cc9f0",
-            "primary_hover": "#3ab5d9",
-            "secondary": "#6c757d",
-            "secondary_hover": "#5a6268",
-            "success": "#20c997",
-            "success_bg": "#0a3622",
-            "warning": "#ffc107",
-            "warning_bg": "#664d03",
-            "danger": "#f72585",
-            "danger_hover": "#d61f74",
-            "danger_bg": "#4a0e29",
-            "table_header": "#2d2d2d",
-            "table_selected": "#3d3d3d",
+            "text": "#f8f9fa",  # From dashboard
+            "subtext": "#999999",  # From dashboard
+            "border": "#333333",  # From dashboard
+            "chart_bg": "#252525",  # From dashboard
+            "activity_bg": "#252525",  # From dashboard
+            "bg": "#1a202c",  # From StockManager
+            "fg": "#2d3748",
+            "primary": "#3b82f6",
+            "primary_hover": "#2563eb",
+            "secondary": "#6b7280",
+            "secondary_hover": "#4b5563",
+            "success": "#16a34a",
+            "success_bg": "#064e3b",
+            "warning": "#f59e0b",
+            "warning_bg": "#78350f",
+            "danger": "#ef4444",
+            "danger_hover": "#dc2626",
+            "danger_bg": "#7f1d1d",
+            "table_header": "#374151",
+            "table_selected": "#4b5563",
             "placeholder_text": "#9ca3af"
         }
     }
     FONTS = {
-        "title": ("Segoe UI", 24, "bold"),
-        "subtitle": ("Segoe UI", 14),
-        "subtext": ("Segoe UI", 12),
-        "label": ("Segoe UI", 12),
+        "title": ("Segoe UI", 24, "bold"),  # From dashboard
+        "subtitle": ("Segoe UI", 14),  # From dashboard
+        "subtext": ("Segoe UI", 12),  # From dashboard
+        "label": ("Segoe UI", 12),  # Mapped from activity_desc
         "label_bold": ("Segoe UI", 12, "bold"),
-        "button": ("Segoe UI", 13, "bold"),
+        "button": ("Segoe UI", 13, "bold"),  # Mapped from activity_title
         "button_active": ("Segoe UI", 13, "bold"),
-        "table": ("Segoe UI", 11),
+        "table": ("Segoe UI", 11),  # Mapped from activity_time
         "table_header": ("Segoe UI", 11, "bold"),
-        "dialog_title": ("Segoe UI", 22, "bold")
+        "dialog_title": ("Segoe UI", 22, "bold")  # Mapped from indicator
     }
     SIZES = {
         "button_width": 120,
@@ -84,7 +84,7 @@ class StockManager(ctk.CTkFrame):
     
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
-        self.current_theme = "dark"
+        self.current_theme = "dark"  # Default to dark mode
         self.configure(fg_color=self.COLORS[self.current_theme]["bg"])
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -96,7 +96,6 @@ class StockManager(ctk.CTkFrame):
         self.stock_data = []
         
         # Création de l'interface
-        print(f"DEBUG: Available COLORS keys: {list(self.COLORS[self.current_theme].keys())}")
         self._create_widgets()
         self._load_sample_data()
         print(f"DEBUG: StockManager initialized in {self.current_theme} mode")
@@ -104,13 +103,22 @@ class StockManager(ctk.CTkFrame):
     def _create_widgets(self):
         """Crée tous les widgets de l'interface."""
         print("DEBUG: Creating widgets")
+        # En-tête
         self.header = self._create_header()
+        
+        # Contenu principal
         self.main_content = ctk.CTkFrame(self, fg_color="transparent")
         self.main_content.grid(row=1, column=0, sticky="nsew", padx=self.SIZES["padding"], pady=self.SIZES["small_padding"])
         self.main_content.grid_columnconfigure(0, weight=1)
         self.main_content.grid_rowconfigure(1, weight=1)
+        
+        # Barre d'outils
         self._create_toolbar()
+        
+        # Tableau du stock
         self._create_stock_table()
+        
+        # Graphique d'analyse
         self._create_analysis_chart()
     
     def _create_header(self):
@@ -119,6 +127,7 @@ class StockManager(ctk.CTkFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, sticky="ew", padx=self.SIZES["padding"], pady=(self.SIZES["padding"], self.SIZES["small_padding"]))
         
+        # Titre
         title = ctk.CTkLabel(
             header,
             text="📦 Gestion du Stock",
@@ -127,9 +136,11 @@ class StockManager(ctk.CTkFrame):
         )
         title.pack(side="left")
         
+        # Indicateur de statut
         status_frame = ctk.CTkFrame(header, fg_color="transparent")
         status_frame.pack(side="right")
         
+        # Compteur d'articles en alerte
         self.alert_counter = ctk.CTkLabel(
             status_frame,
             text="3 articles en alerte",
@@ -138,22 +149,7 @@ class StockManager(ctk.CTkFrame):
         )
         self.alert_counter.pack(side="right", padx=self.SIZES["small_padding"])
         
-        # Add theme toggle button
-        self.theme_btn = ctk.CTkButton(
-            status_frame,
-            text="☀️ Mode Clair",
-            width=self.SIZES["button_width"],
-            height=self.SIZES["button_height"],
-            fg_color="transparent",
-            hover_color=self.COLORS[self.current_theme]["table_selected"],
-            text_color=self.COLORS[self.current_theme]["text"],
-            border_width=1,
-            border_color=self.COLORS[self.current_theme]["border"],
-            font=self.FONTS["button"],
-            command=self._toggle_theme
-        )
-        self.theme_btn.pack(side="right", padx=(0, self.SIZES["small_padding"]))
-        
+        # Bouton d'actualisation
         refresh_btn = ctk.CTkButton(
             status_frame,
             text="🔄 Actualiser",
@@ -171,18 +167,13 @@ class StockManager(ctk.CTkFrame):
         
         return header
     
-    def _toggle_theme(self):
-        """Toggle between light and dark themes."""
-        new_theme = "light" if self.current_theme == "dark" else "dark"
-        self.set_theme(new_theme)
-        self.theme_btn.configure(text="🌙 Mode Sombre" if new_theme == "light" else "☀️ Mode Clair")
-    
     def _create_toolbar(self):
         """Crée la barre d'outils avec les boutons d'action."""
         print("DEBUG: Creating toolbar")
         toolbar = ctk.CTkFrame(self.main_content, fg_color="transparent")
         toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 15))
         
+        # Groupe de boutons de filtre
         filter_frame = ctk.CTkFrame(toolbar, fg_color="transparent")
         filter_frame.pack(side="left")
         
@@ -193,6 +184,7 @@ class StockManager(ctk.CTkFrame):
             text_color=self.COLORS[self.current_theme]["text"]
         ).pack(side="left", padx=(0, self.SIZES["small_padding"]))
         
+        # Boutons de filtre
         self.filter_buttons = {}
         filters = [
             ("Tous", "all", self.COLORS[self.current_theme]["secondary"]),
@@ -216,9 +208,11 @@ class StockManager(ctk.CTkFrame):
             btn.pack(side="left", padx=(0, self.SIZES["small_padding"]))
             self.filter_buttons[value] = btn
         
+        # Groupe de boutons d'action
         action_frame = ctk.CTkFrame(toolbar, fg_color="transparent")
         action_frame.pack(side="right")
         
+        # Bouton d'ajout
         add_btn = ctk.CTkButton(
             action_frame,
             text="+ Ajouter",
@@ -232,6 +226,7 @@ class StockManager(ctk.CTkFrame):
         )
         add_btn.pack(side="left", padx=(0, self.SIZES["small_padding"]))
         
+        # Champ de recherche
         search_frame = ctk.CTkFrame(action_frame, fg_color="transparent")
         search_frame.pack(side="left")
         
@@ -248,9 +243,9 @@ class StockManager(ctk.CTkFrame):
             border_color=self.COLORS[self.current_theme]["border"]
         )
         self.search_entry.pack(side="left")
-        self.search_entry.bind("<Return>", lambda event: self._search_items(event))
+        self.search_entry.bind("<Return>", self._search_items)
         
-        self.search_btn = ctk.CTkButton(
+        search_btn = ctk.CTkButton(
             search_frame,
             text="🔍",
             width=40,
@@ -261,25 +256,27 @@ class StockManager(ctk.CTkFrame):
             text_color=self.COLORS[self.current_theme]["text"],
             command=self._search_items
         )
-        self.search_btn.pack(side="left")
+        search_btn.pack(side="left")
     
     def _create_stock_table(self):
         """Crée le tableau des stocks."""
         print("DEBUG: Creating stock table")
+        # Conteneur pour le tableau et la barre de défilement
         table_container = ctk.CTkFrame(self.main_content, fg_color="transparent")
         table_container.grid(row=1, column=0, sticky="nsew")
         table_container.grid_columnconfigure(0, weight=1)
         table_container.grid_rowconfigure(0, weight=1)
         
+        # Style pour le tableau
         style = ttk.Style()
         style.theme_use("default")
         
         style.configure(
             "Custom.Treeview",
-            background=self.COLORS[self.current_theme]["activity_bg"],
+            background=self.COLORS[self.current_theme]["fg"],
             foreground=self.COLORS[self.current_theme]["text"],
             rowheight=self.SIZES["table_row_height"],
-            fieldbackground=self.COLORS[self.current_theme]["activity_bg"],
+            fieldbackground=self.COLORS[self.current_theme]["fg"],
             borderwidth=0,
             font=self.FONTS["table"]
         )
@@ -298,9 +295,11 @@ class StockManager(ctk.CTkFrame):
             foreground=[("selected", self.COLORS[self.current_theme]["text"])]
         )
         
+        # Création de la barre de défilement
         scrollbar = ttk.Scrollbar(table_container)
         scrollbar.pack(side="right", fill="y")
         
+        # Création du tableau
         columns = ("reference", "designation", "categorie", "quantite", "seuil", "statut", "actions")
         self.table = ttk.Treeview(
             table_container,
@@ -311,6 +310,7 @@ class StockManager(ctk.CTkFrame):
             style="Custom.Treeview"
         )
         
+        # Configuration des colonnes
         self.table.column("reference", width=150, minwidth=120, anchor="w")
         self.table.column("designation", width=250, minwidth=200, anchor="w")
         self.table.column("categorie", width=150, minwidth=120, anchor="w")
@@ -319,6 +319,7 @@ class StockManager(ctk.CTkFrame):
         self.table.column("statut", width=120, minwidth=100, anchor="center")
         self.table.column("actions", width=150, minwidth=120, anchor="center")
         
+        # Configuration des en-têtes
         self.table.heading("reference", text="Référence", command=lambda: self._sort_table("reference"))
         self.table.heading("designation", text="Désignation", command=lambda: self._sort_table("designation"))
         self.table.heading("categorie", text="Catégorie", command=lambda: self._sort_table("categorie"))
@@ -327,17 +328,22 @@ class StockManager(ctk.CTkFrame):
         self.table.heading("statut", text="Statut", command=lambda: self._sort_table("statut"))
         self.table.heading("actions", text="Actions")
         
+        # Configuration de la barre de défilement
         scrollbar.config(command=self.table.yview)
+        
+        # Ajout du tableau au conteneur
         self.table.pack(fill="both", expand=True)
         
+        # Configuration des tags pour les statuts
         self.table.tag_configure("in_stock", background=self.COLORS[self.current_theme]["success_bg"])
         self.table.tag_configure("alert", background=self.COLORS[self.current_theme]["warning_bg"])
         self.table.tag_configure("out_of_stock", background=self.COLORS[self.current_theme]["danger_bg"])
         
+        # Événements
         self.table.bind("<Double-1>", self._on_item_double_click)
     
     def _create_analysis_chart(self):
-        """Crée un graphique d'analyse des stocks."""
+        """Crée un graphique d'analyse (placeholder)."""
         print("DEBUG: Creating analysis chart")
         chart_frame = ctk.CTkFrame(
             self.main_content,
@@ -348,6 +354,7 @@ class StockManager(ctk.CTkFrame):
         )
         chart_frame.grid(row=2, column=0, sticky="nsew", pady=(15, 0))
         
+        # Titre du graphique
         ctk.CTkLabel(
             chart_frame,
             text="📊 Aperçu des stocks",
@@ -355,13 +362,19 @@ class StockManager(ctk.CTkFrame):
             text_color=self.COLORS[self.current_theme]["text"]
         ).pack(pady=self.SIZES["small_padding"], padx=self.SIZES["small_padding"], anchor="w")
         
-        # Sample chart data
-        in_stock = sum(1 for item in self.stock_data if item["quantite"] > item["seuil"])
-        alert = sum(1 for item in self.stock_data if 0 < item["quantite"] <= item["seuil"])
-        out_of_stock = sum(1 for item in self.stock_data if item["quantite"] == 0)
+        # Zone du graphique (placeholder)
+        chart_placeholder = ctk.CTkLabel(
+            chart_frame,
+            text="Graphique d'analyse des stocks\n(À implémenter avec Matplotlib/Plotly)",
+            text_color=self.COLORS[self.current_theme]["placeholder_text"],
+            font=self.FONTS["subtext"],
+            justify="center"
+        )
+        chart_placeholder.pack(expand=True, fill="both", pady=30)
         
-        # Place your chart widget or visualization code here if needed.
-        # The previous chartjs block was not valid Python and has been removed.
+        # Légende
+        legend_frame = ctk.CTkFrame(chart_frame, fg_color="transparent")
+        legend_frame.pack(fill="x", padx=self.SIZES["small_padding"], pady=(0, self.SIZES["small_padding"]))
     
     def _load_sample_data(self):
         """Charge des données d'exemple pour la démonstration."""
@@ -528,7 +541,6 @@ class StockManager(ctk.CTkFrame):
         dialog.title("Ajouter un article")
         dialog.geometry(f"{self.SIZES['dialog_width']}x{self.SIZES['dialog_height']}")
         dialog.resizable(False, False)
-        dialog.configure(fg_color=self.COLORS[self.current_theme]["bg"])
         dialog.grab_set()
         
         screen_width = self.winfo_screenwidth()
@@ -615,7 +627,6 @@ class StockManager(ctk.CTkFrame):
         dialog.title(f"Modifier l'article {reference}")
         dialog.geometry(f"{self.SIZES['dialog_width']}x{self.SIZES['dialog_height']}")
         dialog.resizable(False, False)
-        dialog.configure(fg_color=self.COLORS[self.current_theme]["bg"])
         dialog.grab_set()
         
         screen_width = self.winfo_screenwidth()
@@ -796,31 +807,12 @@ class StockManager(ctk.CTkFrame):
         print(f"DEBUG: Changing theme to {theme}")
         self.current_theme = theme.lower() if theme.lower() in ["light", "dark"] else "dark"
         
-        # Update main frame
         self.configure(fg_color=self.COLORS[self.current_theme]["bg"])
         self.main_content.configure(fg_color="transparent")
         
-        # Update header
         self.header.configure(fg_color="transparent")
-        self.header.winfo_children()[0].configure(text_color=self.COLORS[self.current_theme]["text"])  # Title
         self.alert_counter.configure(text_color=self.COLORS[self.current_theme]["danger"])
-        self.theme_btn.configure(
-            fg_color="transparent",
-            hover_color=self.COLORS[self.current_theme]["table_selected"],
-            text_color=self.COLORS[self.current_theme]["text"],
-            border_color=self.COLORS[self.current_theme]["border"]
-        )
-        self.header.winfo_children()[1].winfo_children()[1].configure(  # Refresh button
-            fg_color="transparent",
-            hover_color=self.COLORS[self.current_theme]["table_selected"],
-            text_color=self.COLORS[self.current_theme]["text"],
-            border_color=self.COLORS[self.current_theme]["border"]
-        )
         
-        # Update toolbar
-        toolbar = self.main_content.winfo_children()[0]
-        filter_frame = toolbar.winfo_children()[0]
-        filter_frame.winfo_children()[0].configure(text_color=self.COLORS[self.current_theme]["text"])  # Filtres label
         for key, btn in self.filter_buttons.items():
             original_color = self.COLORS[self.current_theme]["secondary"] if key == "all" else \
                             self.COLORS[self.current_theme]["success"] if key == "in_stock" else \
@@ -833,32 +825,12 @@ class StockManager(ctk.CTkFrame):
                 font=self.FONTS["button_active"] if key == self.filter_type else self.FONTS["button"]
             )
         
-        action_frame = toolbar.winfo_children()[1]
-        action_frame.winfo_children()[0].configure(  # Add button
-            fg_color=self.COLORS[self.current_theme]["primary"],
-            hover_color=self.COLORS[self.current_theme]["primary_hover"],
-            text_color=self.COLORS[self.current_theme]["text"]
-        )
-        search_frame = action_frame.winfo_children()[1]
-        self.search_entry.configure(
-            fg_color=self.COLORS[self.current_theme]["fg"],
-            text_color=self.COLORS[self.current_theme]["text"],
-            placeholder_text_color=self.COLORS[self.current_theme]["placeholder_text"],
-            border_color=self.COLORS[self.current_theme]["border"]
-        )
-        self.search_btn.configure(
-            fg_color=self.COLORS[self.current_theme]["secondary"],
-            hover_color=self.COLORS[self.current_theme]["secondary_hover"],
-            text_color=self.COLORS[self.current_theme]["text"]
-        )
-        
-        # Update table
         style = ttk.Style()
         style.configure(
             "Custom.Treeview",
-            background=self.COLORS[self.current_theme]["activity_bg"],
+            background=self.COLORS[self.current_theme]["fg"],
             foreground=self.COLORS[self.current_theme]["text"],
-            fieldbackground=self.COLORS[self.current_theme]["activity_bg"],
+            fieldbackground=self.COLORS[self.current_theme]["fg"],
             font=self.FONTS["table"]
         )
         style.configure(
@@ -877,7 +849,6 @@ class StockManager(ctk.CTkFrame):
         self.table.tag_configure("alert", background=self.COLORS[self.current_theme]["warning_bg"])
         self.table.tag_configure("out_of_stock", background=self.COLORS[self.current_theme]["danger_bg"])
         
-        # Recreate chart and update table
         self._create_analysis_chart()
         self._update_table()
 
