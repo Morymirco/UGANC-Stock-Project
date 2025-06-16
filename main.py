@@ -15,14 +15,29 @@ def main():
     try:
         # Configurer l'apparence de l'application en premier
         ctk.set_appearance_mode("light")  # Forcer le mode clair par défaut
-        ctk.set_default_color_theme("blue")  # Thème de couleur par défaut
         
-        # Définir les couleurs par défaut pour éviter les erreurs
-        ctk.CTkLabel._text_color = "#000000"
-        ctk.CTkEntry._fg_color = "#ffffff"
-        ctk.CTkButton._fg_color = "#2b579a"
-        ctk.CTkButton._hover_color = "#1e3d6d"
-        ctk.CTkFrame._fg_color = "#ffffff"
+        # Importer le thème après avoir défini l'apparence
+        from ui.theme import THEME, FONTS
+        
+        # Appliquer les couleurs par défaut du thème
+        light_theme = THEME["light"]
+        dark_theme = THEME["dark"]
+        
+        # Configurer les couleurs par défaut de CustomTkinter
+        ctk.CTkLabel._text_color = light_theme["text"]
+        ctk.CTkLabel._text_color_dark = dark_theme["text"]
+        
+        ctk.CTkEntry._fg_color = light_theme["entry_bg"]
+        ctk.CTkEntry._fg_color_dark = dark_theme["entry_bg"]
+        
+        ctk.CTkButton._fg_color = light_theme["primary"]
+        ctk.CTkButton._fg_color_dark = dark_theme["primary"]
+        
+        ctk.CTkButton._hover_color = light_theme["primary_hover"]
+        ctk.CTkButton._hover_color_dark = dark_theme["primary_hover"]
+        
+        ctk.CTkFrame._fg_color = light_theme["bg"]
+        ctk.CTkFrame._fg_color_dark = dark_theme["bg"]
         
         # Initialiser la base de données
         db = Database()

@@ -291,16 +291,28 @@ class Sidebar(ctk.CTkFrame):
             button_name: Name of clicked button
         """
         print(f"DEBUG: Click on '{button_name}'")
-        key = button_name.lower()
-        if key in self.buttons or button_name == "Déconnexion":
-            self.set_active_button(key)
+        
+        # Trouver la clé du bouton correspondant au texte
+        button_key = None
+        for key, data in self.buttons.items():
+            if data['text'] == button_name:
+                button_key = key
+                break
+                
+        # Si c'est le bouton de déconnexion
+        if button_name == "Déconnexion":
+            button_key = "deconnexion"
+            
+        if button_key in self.buttons or button_name == "Déconnexion":
+            self.set_active_button(button_key if button_key != "deconnexion" else None)
             if self.on_button_click:
-                print(f"DEBUG: Calling on_button_click with '{button_name}'")
-                self.on_button_click(button_name)
+                # Utiliser la clé au lieu du texte du bouton
+                print(f"DEBUG: Calling on_button_click with '{button_key if button_key else 'deconnexion'}'")
+                self.on_button_click(button_key if button_key else "Déconnexion")
             else:
                 print("DEBUG: No callback defined")
         else:
-            print(f"ERROR: Key '{key}' not found")
+            print(f"ERROR: Button '{button_name}' not found")
     
     def _on_hover(self, button_key: str, is_hovered: bool):
         """

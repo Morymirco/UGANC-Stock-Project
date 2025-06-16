@@ -107,30 +107,21 @@ class MainContainer(ctk.CTkFrame):
             ).pack(expand=True)
             self.content_frames["error"].grid_forget()
     
-    def _on_sidebar_button_click(self, button_name: str):
+    def _on_sidebar_button_click(self, button_key: str):
         """
         Gère le clic sur un bouton de la barre latérale.
         
         Args:
-            button_name: Nom du bouton cliqué
+            button_key: Clé du bouton cliqué (dashboard, articles, stock, parametres, etc.)
         """
-        print(f"DEBUG: Clic reçu: '{button_name}'")
-        button_map = {
-            "tableau de bord": "dashboard",
-            "articles": "articles",
-            "stocks": "stock",
-            "paramètres": "parametres",
-            "déconnexion": "logout"
-        }
-        frame_key = button_map.get(button_name.lower(), "dashboard")
-        print(f"DEBUG: Frame clé: '{frame_key}'")
+        print(f"DEBUG: Clic reçu sur la clé: '{button_key}'")
         
-        if frame_key == "logout":
+        if button_key == "Déconnexion" or button_key == "deconnexion":
             print("DEBUG: Déconnexion")
             self.master.destroy()
             return
             
-        self.show_content(frame_key)
+        self.show_content(button_key)
     
     def show_content(self, content_key: str):
         """
@@ -142,10 +133,12 @@ class MainContainer(ctk.CTkFrame):
         print(f"DEBUG: Affichage de '{content_key}'")
         print(f"DEBUG: Frames disponibles: {list(self.content_frames.keys())}")
         
+        # Masquer le frame actuel s'il existe
         if self.current_frame:
             print(f"DEBUG: Masquage de {self.current_frame}")
             self.current_frame.grid_forget()
         
+        # Vérifier si la clé existe
         if content_key not in self.content_frames:
             print(f"ERREUR: Clé '{content_key}' non trouvée")
             error_frame = ctk.CTkFrame(self.content_container, fg_color="transparent")
@@ -160,13 +153,17 @@ class MainContainer(ctk.CTkFrame):
             return
         
         try:
+            # Afficher le nouveau frame
             self.current_frame = self.content_frames[content_key]
             print(f"DEBUG: Affichage de {content_key}: {self.current_frame}")
             self.current_frame.grid(row=0, column=0, sticky="nsew")
             self.current_frame.tkraise()
+            
+            # Mettre à jour le bouton actif dans la barre latérale
             if hasattr(self.sidebar, 'set_active_button'):
                 print(f"DEBUG: Mise à jour du bouton actif: '{content_key}'")
                 self.sidebar.set_active_button(content_key)
+                
         except Exception as e:
             print(f"ERREUR: Affichage de '{content_key}' échoué: {e}")
             error_frame = ctk.CTkFrame(self.content_container, fg_color="transparent")

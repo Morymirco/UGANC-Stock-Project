@@ -1,38 +1,12 @@
 import customtkinter as ctk
 from typing import Dict
 from datetime import datetime
+from ui.theme import THEME, FONTS
 
 class DashboardScreen(ctk.CTkFrame):
     """
     Écran du tableau de bord principal avec des indicateurs, graphiques et activités interactives.
     """
-    
-    # Constantes de style
-    COLORS = {
-        "light": {
-            "text": "#212529",
-            "subtext": "#666666",
-            "border": "#e0e0e0",
-            "chart_bg": "#f8f9fa",
-            "activity_bg": "#f8f9fa"
-        },
-        "dark": {
-            "text": "#f8f9fa",
-            "subtext": "#999999",
-            "border": "#333333",
-            "chart_bg": "#252525",
-            "activity_bg": "#252525"
-        }
-    }
-    FONTS = {
-        "title": ("Segoe UI", 24, "bold"),
-        "subtitle": ("Segoe UI", 14),
-        "indicator": ("Segoe UI", 22, "bold"),
-        "subtext": ("Segoe UI", 12),
-        "activity_title": ("Segoe UI", 13, "bold"),
-        "activity_desc": ("Segoe UI", 12),
-        "activity_time": ("Segoe UI", 11)
-    }
     
     def __init__(self, parent, **kwargs):
         """
@@ -43,6 +17,13 @@ class DashboardScreen(ctk.CTkFrame):
             **kwargs: Arguments supplémentaires pour le CTkFrame
         """
         super().__init__(parent, fg_color="transparent", **kwargs)
+        self.theme_colors = THEME["light"]  # Par défaut, thème clair
+        
+        # Mettre à jour les couleurs si on est en mode sombre
+        if ctk.get_appearance_mode() == "Dark":
+            self.theme_colors = THEME["dark"]
+            self.configure(fg_color=self.theme_colors["bg"])
+            
         print("DEBUG: Initialisation de DashboardScreen")
         
         # Configuration de la grille principale
@@ -63,16 +44,16 @@ class DashboardScreen(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             self.header_frame,
             text="Tableau de bord",
-            font=self.FONTS["title"],
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"])
+            font=FONTS["title"],
+            text_color=self.theme_colors["text"]
         )
         self.title_label.pack(side="left")
         
         self.date_label = ctk.CTkLabel(
             self.header_frame,
             text=datetime.now().strftime("%A %d %B %Y"),
-            font=self.FONTS["subtitle"],
-            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"])
+            font=FONTS["subtitle"],
+            text_color=self.theme_colors["subtext"]
         )
         self.date_label.pack(side="right")
     
@@ -111,7 +92,7 @@ class DashboardScreen(ctk.CTkFrame):
             self.indicators_frame,
             corner_radius=10,
             border_width=1,
-            border_color=(self.COLORS["light"]["border"], self.COLORS["dark"]["border"])
+            border_color=self.theme_colors["border"]
         )
         
         inner_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -120,8 +101,8 @@ class DashboardScreen(ctk.CTkFrame):
         title_label = ctk.CTkLabel(
             inner_frame,
             text=title,
-            font=self.FONTS["subtext"],
-            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
+            font=FONTS["subtext"],
+            text_color=self.theme_colors["subtext"],
             anchor="w"
         )
         title_label.pack(fill="x")
@@ -129,8 +110,8 @@ class DashboardScreen(ctk.CTkFrame):
         value_label = ctk.CTkLabel(
             inner_frame,
             text=value,
-            font=self.FONTS["indicator"],
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            font=FONTS["indicator"],
+            text_color=self.theme_colors["text"],
             anchor="w"
         )
         value_label.pack(fill="x", pady=(5, 0))
@@ -150,8 +131,8 @@ class DashboardScreen(ctk.CTkFrame):
         subtext_label = ctk.CTkLabel(
             sub_frame,
             text=subtext,
-            font=self.FONTS["subtext"],
-            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
+            font=FONTS["subtext"],
+            text_color=self.theme_colors["subtext"],
             anchor="w"
         )
         subtext_label.pack(side="left", fill="x", expand=True)
@@ -188,14 +169,14 @@ class DashboardScreen(ctk.CTkFrame):
             self.charts_frame,
             corner_radius=10,
             border_width=1,
-            border_color=(self.COLORS["light"]["border"], self.COLORS["dark"]["border"])
+            border_color=self.theme_colors["border"]
         )
         
         header = ctk.CTkLabel(
             frame,
             text=title,
-            font=self.FONTS["subtitle"],
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            font=FONTS["subtitle"],
+            text_color=self.theme_colors["text"],
             anchor="w",
             padx=15,
             pady=12
@@ -205,9 +186,9 @@ class DashboardScreen(ctk.CTkFrame):
         chart = ctk.CTkButton(
             frame,
             text=f"Cliquer pour charger {chart_id}",
-            fg_color=(self.COLORS["light"]["chart_bg"], self.COLORS["dark"]["chart_bg"]),
+            fg_color=self.theme_colors["chart_bg"],
             hover_color=("#e0e0e0", "#333333"),
-            font=self.FONTS["subtext"],
+            font=FONTS["subtext"],
             height=200,
             command=lambda: self._on_chart_click(chart_id)
         )
@@ -217,22 +198,29 @@ class DashboardScreen(ctk.CTkFrame):
     
     def _create_activities(self):
         """Crée la section des dernières activités."""
-        self.activities_frame = ctk.CTkFrame(self, corner_radius=10)
+        self.activities_frame = ctk.CTkFrame(
+            self, 
+            corner_radius=10,
+            fg_color=self.theme_colors["activity_bg"]
+        )
         self.activities_frame.grid(row=3, column=0, sticky="nsew")
         self.activities_frame.grid_columnconfigure(0, weight=1)
         
         header = ctk.CTkLabel(
             self.activities_frame,
             text="Dernières activités",
-            font=self.FONTS["subtitle"],
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            font=FONTS["subtitle"],
+            text_color=self.theme_colors["text"],
             anchor="w",
             padx=20,
             pady=15
         )
         header.pack(fill="x")
         
-        self.activities_list = ctk.CTkFrame(self.activities_frame, fg_color="transparent")
+        self.activities_list = ctk.CTkFrame(
+            self.activities_frame, 
+            fg_color="transparent"
+        )
         self.activities_list.pack(fill="both", expand=True, padx=10, pady=(0, 10))
         
         activities = [
@@ -255,9 +243,12 @@ class DashboardScreen(ctk.CTkFrame):
             time: Temps écoulé
             index: Position dans la liste
         """
+        # Utiliser une couleur d'arrière-plan alternée pour les lignes paires
+        bg_color = self.theme_colors["activity_bg_alt"] if index % 2 == 0 else "transparent"
+        
         activity_frame = ctk.CTkFrame(
             self.activities_list,
-            fg_color=(self.COLORS["light"]["activity_bg"], self.COLORS["dark"]["activity_bg"]) if index % 2 == 0 else "transparent",
+            fg_color=bg_color,
             corner_radius=8
         )
         activity_frame.pack(fill="x", pady=2)
@@ -270,7 +261,7 @@ class DashboardScreen(ctk.CTkFrame):
             text=icon,
             font=("Arial", 16),
             width=30,
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"])
+            text_color=self.theme_colors["text"]
         )
         icon_label.pack(side="left")
         
@@ -280,8 +271,8 @@ class DashboardScreen(ctk.CTkFrame):
         title_label = ctk.CTkLabel(
             content_frame,
             text=title,
-            font=self.FONTS["activity_title"],
-            text_color=(self.COLORS["light"]["text"], self.COLORS["dark"]["text"]),
+            font=FONTS["subtitle"],
+            text_color=self.theme_colors["text"],
             anchor="w"
         )
         title_label.pack(fill="x")
@@ -289,8 +280,8 @@ class DashboardScreen(ctk.CTkFrame):
         desc_label = ctk.CTkLabel(
             content_frame,
             text=desc,
-            font=self.FONTS["activity_desc"],
-            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
+            font=FONTS["subtext"],
+            text_color=self.theme_colors["subtext"],
             anchor="w"
         )
         desc_label.pack(fill="x")
@@ -298,8 +289,8 @@ class DashboardScreen(ctk.CTkFrame):
         time_label = ctk.CTkLabel(
             container,
             text=time,
-            font=self.FONTS["activity_time"],
-            text_color=(self.COLORS["light"]["subtext"], self.COLORS["dark"]["subtext"]),
+            font=FONTS["subtext"],
+            text_color=self.theme_colors["subtext"],
             anchor="e"
         )
         time_label.pack(side="right")
